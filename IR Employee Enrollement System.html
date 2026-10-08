@@ -1,0 +1,5126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Enrolment Form</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #f4f6f9; margin: 0; padding: 32px 16px; color: #1c2536; }
+  .card { max-width: 1120px; margin: 0 auto 24px; background: #fff; border-radius: 12px; padding: 32px; box-shadow: 0 2px 16px rgba(20,35,70,.08); }
+  h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: -.2px; }
+  h2 { margin: 0 0 16px; font-size: 18px; }
+  .sub { color: #6b7688; margin: 0 0 18px; font-size: 13px; }
+  #formCard > h1 { color: #20315f; }
+  #formCard { border-top: 5px solid #2f4bd6; }
+  fieldset { border: 0; border-top: 1px solid #e4e8ef; padding: 15px 0 3px; margin: 0; }
+  legend { font-weight: 700; font-size: 14px; padding: 0 10px 0 0; color: #2f4bd6; }
+  fieldset.compact { padding-top: 11px; }
+  fieldset.compact legend { font-size: 13px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .compact-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 14px; }
+  .compact-grid .full { grid-column: 1 / -1; }
+  .full { grid-column: 1 / -1; }
+  label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 5px; color: #3a4459; }
+  .req::after { content: " *"; color: #d63847; }
+  input, select, textarea { width: 100%; padding: 9px 11px; border: 1px solid #ccd3e0; border-radius: 7px; font-size: 13px; font-family: inherit; background: #fff; }
+  .compact-grid input, .compact-grid select { padding: 8px 10px; font-size: 13px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #2f4bd6; box-shadow: 0 0 0 3px rgba(47,75,214,.12); }
+  textarea { resize: vertical; min-height: 72px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 400; margin-top: 8px; }
+  .check input { width: auto; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  button { padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; border: 1px solid transparent; font-family: inherit; }
+  .primary { background: #2f4bd6; color: #fff; }
+  .primary:hover { background: #2540bd; }
+  .green { background: #17864a; color: #fff; }
+  .green:hover { background: #12693a; }
+  .ghost { background: #fff; border-color: #ccd3e0; color: #3a4459; }
+  .ghost:hover { background: #f2f4f8; }
+  .msg { margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-size: 14px; display: none; }
+  .msg.ok { display: block; background: #e8f6ee; color: #14663c; }
+  .msg.err { display: block; background: #fdecee; color: #a3212f; }
+  .bar { height: 4px; background: #e4e8ef; border-radius: 4px; margin: 24px 0 4px; }
+  .bar span { display: block; height: 100%; width: 0; background: #2f4bd6; border-radius: 4px; transition: width .2s; }
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+  .counter { font-size: 15px; color: #3a4459; }
+  .counter b { font-size: 22px; color: #2f4bd6; }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e8ecf3; white-space: nowrap; }
+  th { background: #f7f9fc; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: #6b7688; }
+  tbody tr:hover { background: #fafbfe; }
+  .empty { text-align: center; color: #98a1b3; padding: 32px 12px; font-size: 14px; }
+  .del { background: none; border: 0; color: #d63847; cursor: pointer; font-size: 13px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+  .del:hover { background: #fdecee; }
+  .edit { background: none; border: 0; color: #2f4bd6; cursor: pointer; font-size: 13px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+  .edit:hover { background: #eef1fd; }
+  .prt { background: none; border: 0; color: #17864a; cursor: pointer; font-size: 13px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+  .prt:hover { background: #e8f6ee; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  @media (max-width: 760px) { .compact-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 600px) { .grid, .compact-grid { grid-template-columns: 1fr; } .card { padding: 22px; } }
+
+  /* ============ PRINT VIEW (employee detail sheet) ============ */
+  #printArea { display: none; }
+  @media print {
+    @page { size: A4 portrait; margin: 9mm; }
+    body { background: #fff; padding: 0; margin: 0; font-size: 10px; }
+    .toolbar, #msg { display: none !important; }
+    .card { box-shadow: none; border-radius: 0; margin: 0 auto; padding: 8px 10px; border-top: 0 !important; }
+    #formCard { max-width: none; }
+    #formCard > h1 { font-size: 18px; margin-bottom: 2px; }
+    #formCard .sub { font-size: 9px; margin-bottom: 7px; }
+    .actions, .bar { display: none !important; }
+    #enrolForm fieldset { padding: 7px 0 2px; page-break-inside: avoid; break-inside: avoid; }
+    #enrolForm fieldset.compact { padding-top: 5px; }
+    #enrolForm legend { font-size: 10.5px; margin-bottom: 3px; }
+    #enrolForm .grid { gap: 5px 9px; }
+    #enrolForm .compact-grid { gap: 5px 9px; }
+    #enrolForm label { font-size: 8.5px; margin-bottom: 2px; }
+    #enrolForm input, #enrolForm select, #enrolForm textarea { padding: 4px 6px; min-height: 21px; border-radius: 4px; font-size: 9px; }
+    #enrolForm textarea { min-height: 38px; }
+    #enrolForm .check { font-size: 9px; margin-top: 2px; }
+    #enrolForm .declaration-field { padding-bottom: 0; }
+    table { font-size: 10px; }
+    th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th, td { padding: 5px 7px; }
+
+    /* Default A4 form print: only the enrolment form */
+    body:not(.printing-all):not(.printing-one) #recordsCard { display: none !important; }
+
+    /* Dedicated one-page A4 form print */
+    body.printing-form #recordsCard,
+    body.printing-form #printArea { display: none !important; }
+    body.printing-form #formCard { display: block !important; }
+
+    /* Print All: form + saved records */
+    body.printing-all #recordsCard { display: block !important; }
+
+    /* Single employee detail sheet */
+    body.printing-one #formCard,
+    body.printing-one #recordsCard { display: none !important; }
+    body.printing-one #printArea { display: block !important; }
+
+    /* Keep the complete enrolment form compact on one A4 sheet */
+    body.printing-form #formCard { width:100%; max-width:none; padding:4mm 5mm; margin:0; }
+    body.printing-form #formCard > h1 { font-size:16px; margin:0 0 1px; }
+    body.printing-form #formCard .sub { font-size:8px; margin:0 0 4px; }
+    body.printing-form #enrolForm fieldset { padding:4px 0 1px; margin:0; }
+    body.printing-form #enrolForm fieldset.compact { padding-top:3px; }
+    body.printing-form #enrolForm legend { font-size:9.5px; margin-bottom:2px; }
+    body.printing-form #enrolForm .grid,
+    body.printing-form #enrolForm .compact-grid { gap:3px 7px; }
+    body.printing-form #enrolForm label { font-size:7.5px; margin-bottom:1px; }
+    body.printing-form #enrolForm input,
+    body.printing-form #enrolForm select,
+    body.printing-form #enrolForm textarea { padding:2px 5px; min-height:18px; height:18px; font-size:8px; border-radius:3px; }
+    body.printing-form #enrolForm textarea { height:28px; min-height:28px; }
+    body.printing-form #enrolForm .check { font-size:8px; margin-top:1px; }
+    body.printing-form #enrolForm .declaration-field { padding-bottom:0; }
+    body.printing-form #enrolForm .bar,
+    body.printing-form #enrolForm .actions,
+    body.printing-form #enrolForm #msg { display:none !important; }
+
+    .sheet { max-width: 100%; }
+    .sheet-head { border-bottom: 3px solid #2f4bd6; padding-bottom: 10px; margin-bottom: 16px; }
+    .sheet-head h1 { font-size: 19px; margin: 0 0 3px; color: #2f4bd6; }
+    .sheet-head p { margin: 0; font-size: 12px; color: #555; }
+    .sheet h3 {
+      font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: #2f4bd6;
+      border-bottom: 1px solid #cfd6e4; padding-bottom: 4px; margin: 18px 0 8px;
+    }
+    .sheet table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+    .sheet table td { border: 1px solid #ddd; padding: 6px 9px; vertical-align: top; white-space: normal; }
+    .sheet table td.k { background: #f5f7fb; font-weight: 600; width: 26%; color: #333; }
+    .sheet-foot { margin-top: 26px; display: flex; justify-content: space-between; font-size: 11px; color: #444; }
+    .sheet-foot div { border-top: 1px solid #666; padding-top: 5px; width: 45%; text-align: center; }
+    .sheet-note { margin-top: 14px; font-size: 10px; color: #777; }
+  }
+/* =========================================================
+   EMPLOYEE ENROLMENT - PROFESSIONAL HEADER
+   ========================================================= */
+
+.system-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    padding:20px 24px;
+    margin:-1px -1px 0;
+    border-bottom:1px solid #dbe3ec;
+    background:linear-gradient(135deg,#f8fbff,#eef5fb);
+}
+
+.system-title{
+    font-size:22px;
+    font-weight:800;
+    letter-spacing:.4px;
+    color:#123b63;
+}
+
+.system-subtitle{
+    margin-top:5px;
+    font-size:13px;
+    color:#667788;
+}
+
+.system-badge{
+    padding:8px 14px;
+    border-radius:20px;
+    background:#e7f3ff;
+    color:#1769aa;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.5px;
+}
+
+/* =========================================================
+   CNIC FIRST SCREEN
+   ========================================================= */
+
+.cnic-gate{
+    max-width:760px;
+    margin:40px auto;
+    overflow:hidden;
+}
+
+.cnic-gate-content{
+    padding:38px 45px 42px;
+}
+
+.cnic-gate-content h2{
+    margin:0 0 8px;
+    font-size:22px;
+    color:#1f3448;
+}
+
+.cnic-help{
+    margin:0 0 28px;
+    color:#687888;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.cnic-gate-content label{
+    display:block;
+    margin-bottom:8px;
+    font-size:13px;
+    font-weight:700;
+    color:#33495c;
+}
+
+.cnic-gate-content input{
+    width:100%;
+    box-sizing:border-box;
+    padding:14px 15px;
+    border:1px solid #cbd6e1;
+    border-radius:8px;
+    background:#fff;
+    font-size:16px;
+    letter-spacing:.5px;
+    outline:none;
+    transition:.2s;
+}
+
+.cnic-gate-content input:focus{
+    border-color:#2677b8;
+    box-shadow:0 0 0 3px rgba(38,119,184,.10);
+}
+
+.cnic-actions{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+}
+
+.cnic-actions .btn{
+    min-width:145px;
+}
+
+.cnic-message{
+    min-height:20px;
+    margin-top:10px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.cnic-message.success{
+    color:#16834b;
+}
+
+.cnic-message.error{
+    color:#c0392b;
+}
+
+.cnic-message.info{
+    color:#276b9e;
+}
+
+/* =========================================================
+   PERSONAL INFORMATION + PHOTO
+   ========================================================= */
+
+.personal-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 230px;
+    gap:28px;
+    align-items:start;
+}
+
+.personal-fields{
+    min-width:0;
+}
+
+.photo-panel{
+    border:1px solid #d5dee7;
+    border-radius:10px;
+    background:#f9fbfd;
+    padding:16px;
+    text-align:center;
+}
+
+.photo-panel-title{
+    font-size:13px;
+    font-weight:800;
+    color:#33495c;
+    margin-bottom:12px;
+}
+
+.photo-frame{
+    width:150px;
+    height:190px;
+    margin:0 auto 14px;
+    border:1px dashed #aebdca;
+    border-radius:7px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.photo-frame img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:none;
+}
+
+.photo-placeholder{
+    color:#9aa8b5;
+    font-size:12px;
+    line-height:1.5;
+    padding:15px;
+}
+
+.photo-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.photo-actions button{
+    width:100%;
+}
+
+.photo-note{
+    margin-top:10px;
+    font-size:11px;
+    color:#7a8793;
+    line-height:1.4;
+}
+
+@media(max-width:800px){
+
+    .system-header{
+        padding:16px;
+    }
+
+    .system-title{
+        font-size:18px;
+    }
+
+    .cnic-gate-content{
+        padding:28px 22px;
+    }
+
+    .personal-layout{
+        grid-template-columns:1fr;
+    }
+
+    .photo-panel{
+        max-width:260px;
+        width:100%;
+        margin:0 auto;
+    }
+
+    .cnic-actions{
+        flex-direction:column;
+    }
+
+    .cnic-actions .btn{
+        width:100%;
+    }
+}
+/* ================= AUTH LOCK ================= */
+
+#loginScreen{
+    display:block;
+}
+
+#cnicGate,
+#formCard,
+#recordsCard{
+    display:none;
+}
+/* ================= PROFESSIONAL LOGOUT BUTTON ================= */
+
+#logoutBtn{
+    float:right;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+
+    background:#ffffff;
+    color:#33495c;
+
+    border:1px solid #ccd3e0;
+    border-radius:7px;
+
+    padding:8px 14px;
+    font-size:13px;
+    font-weight:600;
+
+    cursor:pointer;
+    transition:all .2s ease;
+
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+
+#logoutBtn:hover{
+    background:#f4f7fa;
+    border-color:#aeb9c7;
+    color:#1f3445;
+}
+
+#logoutBtn:active{
+    transform:translateY(1px);
+}
+/* ================= ADMIN NOTIFICATION ================= */
+
+#notificationBtn{
+    float:right;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+
+    background:#ffffff;
+    color:#33495c;
+
+    border:1px solid #ccd3e0;
+    border-radius:7px;
+
+    padding:8px 12px;
+    margin-right:8px;
+
+    font-size:13px;
+    font-weight:600;
+
+    cursor:pointer;
+    position:relative;
+
+    transition:all .2s ease;
+}
+
+#notificationBtn:hover{
+    background:#f4f7fa;
+    border-color:#aeb9c7;
+}
+
+#notificationBadge{
+    position:absolute;
+    top:-6px;
+    right:-6px;
+
+    min-width:18px;
+    height:18px;
+
+    display:none;
+    align-items:center;
+    justify-content:center;
+
+    background:#d92d20;
+    color:#ffffff;
+
+    border-radius:50%;
+    font-size:10px;
+    font-weight:700;
+
+    padding:0 4px;
+}
+/* ================= NOTIFICATION PANEL ================= */
+
+#notificationPanel{
+    clear:both;
+    position:relative;
+
+    margin-top:12px;
+    margin-bottom:15px;
+
+    background:#ffffff;
+    border:1px solid #d9dee7;
+    border-radius:9px;
+
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+
+    overflow:hidden;
+}
+
+.notification-panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:11px 14px;
+
+    background:#f7f9fb;
+    border-bottom:1px solid #e4e7ec;
+
+    color:#33495c;
+    font-size:14px;
+}
+
+#closeNotificationsBtn{
+    border:0;
+    background:transparent;
+    color:#667085;
+
+    font-size:20px;
+    line-height:1;
+
+    cursor:pointer;
+}
+
+#closeNotificationsBtn:hover{
+    color:#1f3445;
+}
+
+#notificationList{
+    max-height:280px;
+    overflow-y:auto;
+}
+
+.notification-empty{
+    padding:18px;
+    text-align:center;
+
+    color:#667085;
+    font-size:13px;
+}
+.notification-item{
+    padding:12px 14px;
+    border-bottom:1px solid #eef1f4;
+    background:#ffffff;
+}
+
+.notification-item:last-child{
+    border-bottom:0;
+}
+
+.notification-message{
+    color:#253746;
+    font-size:13px;
+    font-weight:600;
+    line-height:1.45;
+}
+
+.notification-meta{
+    margin-top:5px;
+    color:#667085;
+    font-size:11px;
+}
+/* =========================================================
+   FINAL A4 PRINT OVERRIDE — EMPLOYEE ENROLMENT FORM
+   Screen layout is NOT affected
+   ========================================================= */
+
+@media print {
+
+  /* ---------- ONLY A4 FORM PRINT ---------- */
+
+  body.printing-form {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #111 !important;
+  }
+
+  body.printing-form #loginScreen,
+  body.printing-form #cnicGate,
+  body.printing-form #recordsCard,
+  body.printing-form #printArea {
+    display: none !important;
+  }
+
+  body.printing-form #formCard {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 2mm 1mm 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    border-top: 2px solid #2f4bd6 !important;
+    border-radius: 0 !important;
+  }
+
+  /* ---------- PROFESSIONAL HEADER ---------- */
+
+  body.printing-form #formCard > h1 {
+    margin: 0 0 1.5mm !important;
+    padding: 0 0 1.5mm !important;
+    border-bottom: 2px solid #2f4bd6 !important;
+
+    color: #123b63 !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+    letter-spacing: .4px !important;
+    text-transform: uppercase !important;
+  }
+
+  body.printing-form #formCard > h1::after {
+    content: "HR / ADMIN  •  PRIVATE & CONFIDENTIAL";
+    float: right;
+    margin-top: 2px;
+    color: #667788;
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: .3px;
+  }
+
+  body.printing-form #formCard .sub {
+    display: none !important;
+  }
+
+  /* ---------- REMOVE SCREEN-ONLY ITEMS ---------- */
+
+  body.printing-form .actions,
+  body.printing-form .toolbar,
+  body.printing-form .bar,
+  body.printing-form #msg,
+  body.printing-form .photo-actions,
+  body.printing-form .photo-note {
+    display: none !important;
+  }
+
+  /* ---------- SECTIONS ---------- */
+
+  body.printing-form #enrolForm fieldset {
+    margin: 0 !important;
+    padding: 2mm 0 1mm !important;
+
+    border: 0 !important;
+    border-top: 1px solid #d5dde7 !important;
+
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  body.printing-form #enrolForm fieldset:first-child {
+    border-top: 0 !important;
+    padding-top: 1mm !important;
+  }
+
+  body.printing-form #enrolForm fieldset.compact {
+    padding-top: 1.5mm !important;
+  }
+
+  body.printing-form #enrolForm legend {
+    margin: 0 0 1.2mm !important;
+    padding: 0 5px 0 0 !important;
+
+    color: #2f4bd6 !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    letter-spacing: .3px !important;
+    text-transform: uppercase !important;
+  }
+
+  /* ---------- PERSONAL INFORMATION + PHOTO ---------- */
+
+  body.printing-form .personal-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 42mm !important;
+    gap: 4mm !important;
+    align-items: start !important;
+  }
+
+  body.printing-form .personal-fields {
+    min-width: 0 !important;
+  }
+
+  body.printing-form #enrolForm .grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 2.2mm 3mm !important;
+  }
+
+  /* ---------- PHOTO AREA ---------- */
+
+  body.printing-form .photo-panel {
+    padding: 2.5mm !important;
+    border: 1px solid #c7d2df !important;
+    border-radius: 1.5mm !important;
+    background: #fafcfe !important;
+    text-align: center !important;
+  }
+
+  body.printing-form .photo-panel-title {
+    margin: 0 0 1.5mm !important;
+    color: #33495c !important;
+    font-size: 8px !important;
+    font-weight: 800 !important;
+  }
+
+  body.printing-form .photo-frame {
+    width: 39mm !important;
+    height: 50mm !important;
+    margin: 0 auto !important;
+
+    border: 1px solid #aebdca !important;
+    border-radius: 1mm !important;
+    background: #fff !important;
+  }
+
+  body.printing-form .photo-placeholder {
+    font-size: 7px !important;
+    line-height: 1.4 !important;
+  }
+
+  /* ---------- LABELS ---------- */
+
+  body.printing-form #enrolForm label {
+    margin-bottom: .5mm !important;
+
+    color: #3a4459 !important;
+    font-size: 7.8px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+  }
+
+  /* ---------- INPUTS ---------- */
+
+  body.printing-form #enrolForm input,
+  body.printing-form #enrolForm select,
+  body.printing-form #enrolForm textarea {
+    width: 100% !important;
+
+    padding: 1mm 1.5mm !important;
+
+    min-height: 7mm !important;
+    height: 7mm !important;
+
+    border: 1px solid #c8d1dc !important;
+    border-radius: 1mm !important;
+
+    background: #fff !important;
+    color: #111 !important;
+
+    font-size: 9.2px !important;
+    line-height: 1.2 !important;
+  }
+
+  body.printing-form #enrolForm textarea {
+    height: 12mm !important;
+    min-height: 12mm !important;
+    resize: none !important;
+  }
+
+  /* ---------- COMPACT 3-COLUMN SECTIONS ---------- */
+
+  body.printing-form #enrolForm .compact-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 2mm 3mm !important;
+  }
+
+  body.printing-form #enrolForm .compact-grid .full {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* ---------- DECLARATION ---------- */
+
+  body.printing-form #enrolForm .check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.5mm !important;
+
+    margin: 0 !important;
+
+    font-size: 8.3px !important;
+    line-height: 1.2 !important;
+  }
+
+  body.printing-form #enrolForm .check input {
+    width: 3.5mm !important;
+    height: 3.5mm !important;
+    min-height: 3.5mm !important;
+    margin: 0 !important;
+  }
+
+  /* ---------- REQUIRED MARK ---------- */
+
+  body.printing-form #enrolForm .req::after {
+    font-size: 7px !important;
+  }
+
+  /* ---------- PRINT SIGNATURES ---------- */
+
+  body.printing-form .print-signatures {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12mm !important;
+
+    margin-top: 5mm !important;
+    padding-top: 1mm !important;
+  }
+
+  body.printing-form .print-signatures div {
+    text-align: center !important;
+    color: #333 !important;
+    font-size: 8px !important;
+  }
+
+  body.printing-form .print-signatures span {
+    display: block !important;
+    height: 6mm !important;
+    margin-bottom: 1mm !important;
+    border-bottom: 1px solid #555 !important;
+  }
+
+  /* ---------- DO NOT SHOW SIGNATURES ON SCREEN ---------- */
+
+  .print-signatures {
+    display: none;
+  }
+}
+/* =========================================================
+   ISMAIL RESIN - DIGITAL EMPLOYEE MANAGEMENT SYSTEM
+   STEP 1: LOGIN + DASHBOARD DESIGN
+========================================================= */
+
+:root {
+  --ir-primary: #123b63;
+  --ir-primary-dark: #0b2945;
+  --ir-accent: #1f6f8b;
+  --ir-light: #f4f7fa;
+  --ir-border: #dce4ec;
+  --ir-text: #172b3a;
+  --ir-muted: #6b7b8c;
+  --ir-success: #198754;
+}
+
+/* ---------- APP BACKGROUND ---------- */
+
+body {
+  background:
+    linear-gradient(135deg, #eef3f7 0%, #f8fafc 50%, #edf2f6 100%);
+  color: var(--ir-text);
+}
+
+/* ---------- LOGIN SCREEN ---------- */
+
+#loginScreen {
+  max-width: 460px !important;
+  margin: 7vh auto !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border-radius: 18px !important;
+  border: 1px solid rgba(18,59,99,.10);
+  box-shadow: 0 18px 50px rgba(18,59,99,.15) !important;
+  background: #fff;
+}
+
+#loginScreen .system-header {
+  padding: 34px 28px 30px !important;
+  background:
+    linear-gradient(135deg,
+      var(--ir-primary-dark),
+      var(--ir-primary),
+      var(--ir-accent));
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+#loginScreen .system-header::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  right: -70px;
+  top: -80px;
+  background: rgba(255,255,255,.08);
+}
+
+#loginScreen .system-header::before {
+  content: "IR";
+  position: absolute;
+  right: 22px;
+  bottom: 12px;
+  font-size: 58px;
+  font-weight: 800;
+  color: rgba(255,255,255,.08);
+  letter-spacing: -4px;
+}
+
+#loginScreen .system-header > div {
+  position: relative;
+  z-index: 2;
+}
+
+#loginScreen .system-header div[style*="direction:rtl"] {
+  font-size: 21px !important;
+  margin-bottom: 18px !important;
+  opacity: .95;
+}
+
+#loginScreen .system-title {
+  font-size: 23px !important;
+  font-weight: 800 !important;
+  line-height: 1.25;
+  letter-spacing: .2px;
+}
+
+#loginScreen .system-subtitle {
+  margin-top: 8px;
+  font-size: 13px !important;
+  color: rgba(255,255,255,.82);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+#loginScreen > div:last-child {
+  padding: 30px !important;
+}
+
+#loginScreen label {
+  color: #34495e;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#loginScreen input {
+  margin-top: 6px;
+  height: 46px;
+  border-radius: 9px;
+  border: 1px solid #d4dde6;
+  background: #fbfcfd;
+}
+
+#loginScreen input:focus {
+  border-color: var(--ir-accent);
+  box-shadow: 0 0 0 3px rgba(31,111,139,.12);
+}
+
+#loginScreen #loginBtn {
+  height: 48px;
+  border: 0;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--ir-primary), var(--ir-accent));
+  font-weight: 700;
+  letter-spacing: .2px;
+  box-shadow: 0 7px 18px rgba(18,59,99,.18);
+  transition: .2s ease;
+}
+
+#loginScreen #loginBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(18,59,99,.22);
+}
+
+#loginScreen #loginMsg {
+  min-height: 20px;
+}
+
+/* ---------- DASHBOARD ---------- */
+
+#mainDashboard {
+  display: none;
+  max-width: 1180px;
+  margin: 0 auto 28px;
+}
+
+.dashboard-shell {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--ir-border);
+  box-shadow: 0 10px 35px rgba(20,45,70,.08);
+}
+
+/* Header */
+
+.dashboard-header {
+  padding: 24px 28px;
+  background:
+    linear-gradient(135deg,
+      var(--ir-primary-dark),
+      var(--ir-primary),
+      var(--ir-accent));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.dashboard-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.2);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.dashboard-company {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: .85;
+}
+
+.dashboard-title {
+  font-size: 23px;
+  font-weight: 800;
+  margin-top: 3px;
+}
+
+.dashboard-user {
+  text-align: right;
+}
+
+.dashboard-user-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dashboard-user-role {
+  font-size: 12px;
+  opacity: .8;
+  margin-top: 3px;
+}
+
+.dashboard-logout {
+  margin-top: 8px;
+  padding: 7px 13px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.10);
+  color: #fff;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+/* Welcome */
+
+.dashboard-content {
+  padding: 28px;
+}
+
+.dashboard-welcome {
+  margin-bottom: 24px;
+}
+
+.dashboard-welcome h2 {
+  margin: 0;
+  font-size: 21px;
+  color: var(--ir-text);
+}
+
+.dashboard-welcome p {
+  margin: 6px 0 0;
+  color: var(--ir-muted);
+  font-size: 13px;
+}
+
+/* Stats */
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 28px;
+}
+
+.dashboard-stat {
+  padding: 18px;
+  border: 1px solid var(--ir-border);
+  border-radius: 12px;
+  background: #fbfcfd;
+}
+
+.dashboard-stat-label {
+  color: var(--ir-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dashboard-stat-value {
+  margin-top: 6px;
+  font-size: 27px;
+  font-weight: 800;
+  color: var(--ir-primary);
+}
+
+.dashboard-stat-icon {
+  float: right;
+  font-size: 22px;
+}
+
+/* Menu */
+
+.dashboard-section-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ir-text);
+  margin-bottom: 12px;
+}
+
+.dashboard-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.dashboard-menu-card {
+  min-height: 115px;
+  padding: 18px;
+  border: 1px solid var(--ir-border);
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: .2s ease;
+  box-shadow: 0 3px 10px rgba(20,45,70,.04);
+}
+
+.dashboard-menu-card:hover {
+  transform: translateY(-2px);
+  border-color: #b9cad8;
+  box-shadow: 0 9px 20px rgba(20,45,70,.09);
+}
+
+.dashboard-menu-icon {
+  font-size: 25px;
+  margin-bottom: 10px;
+}
+
+.dashboard-menu-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ir-text);
+}
+
+.dashboard-menu-text {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ir-muted);
+}
+
+/* ---------- HIDE OLD DIRECT SCREENS UNTIL DASHBOARD NAVIGATES ---------- */
+
+#cnicGate,
+#formCard,
+#recordsCard {
+  display: none;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 800px) {
+
+  #loginScreen {
+    margin: 25px 12px !important;
+  }
+
+  .dashboard-header {
+    padding: 20px;
+  }
+
+  .dashboard-content {
+    padding: 20px;
+  }
+
+  .dashboard-user {
+    text-align: left;
+  }
+
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+
+  .dashboard-title {
+    font-size: 19px;
+  }
+
+  .dashboard-menu-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-brand {
+    align-items: flex-start;
+  }
+
+  .dashboard-logo {
+    width: 45px;
+    height: 45px;
+  }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- ===== NAVY + GOLD THEME + TAB LOGO ===== -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230b2447'/%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23ef9f27' stroke-width='1.6'/%3E%3Ctext x='16' y='20.5' text-anchor='middle' font-size='11' font-weight='700' fill='%23ffffff' font-family='Arial'%3EIR%3C/text%3E%3C/svg%3E">
+<script>document.title = 'Ismail Resin | HR Digital Employee Enrollment System';</script>
+<style>
+@media screen {
+  body {
+    position: relative;
+    min-height: 100vh;
+    background:
+      radial-gradient(rgba(255,255,255,.08) 1.3px, transparent 1.5px) 0 0 / 24px 24px,
+      linear-gradient(180deg, #0b2447 0, #123a6b 250px, #edf1f7 250px);
+    background-repeat: repeat, no-repeat;
+  }
+  body::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: #ef9f27; }
+  body::after {
+    content: "\00A9  Ismail Resin  \2022  HR Digital Employee Enrollment System  \2022  Private & Confidential";
+    display: block; text-align: center; color: #7a8aa0; font-size: 12px; padding: 26px 0 8px;
+  }
+  .card { border: 1px solid #dfe6f0; border-radius: 16px; box-shadow: 0 14px 34px rgba(11,36,71,.16); }
+
+  /* Login */
+  #loginScreen { margin: 48px auto !important; padding: 0; overflow: hidden; }
+  #loginScreen .system-header { margin: 0; padding: 28px 24px; background: linear-gradient(135deg, #0b2447, #123a6b); border-bottom: 4px solid #ef9f27; }
+  #loginScreen .system-header div { color: #fff; }
+  #loginScreen .system-header .system-subtitle { color: #c9d8ee; }
+  #loginScreen .system-logo { height: 88px; width: 88px; flex-basis: 88px; border: 3px solid #ef9f27; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  #loginScreen label { font-weight: 700; color: #1d2f4d; }
+  #loginScreen input { padding: 12px 14px; font-size: 14px; }
+
+  /* Headers and sections */
+  .system-title { color: #0b2447; }
+  #cnicGate .system-header { border: 1px solid #d6e2f2; border-bottom: 3px solid #ef9f27; border-radius: 12px; }
+  #cnicGate .system-logo { border: 2px solid #ef9f27; }
+  .system-badge { background: #ef9f27; color: #0b2447; }
+  #formCard { border-top: 5px solid #ef9f27; }
+  fieldset { border-top: 0; padding-top: 18px; }
+  legend { background: #e8eef8; color: #0b2447; padding: 5px 14px; border-radius: 20px; border-left: 4px solid #ef9f27; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+
+  /* Inputs and buttons */
+  input, select, textarea { border-color: #cdd7e5; background: #fbfdff; border-radius: 9px; }
+  input:focus, select:focus, textarea:focus { border-color: #0b2447; box-shadow: 0 0 0 3px rgba(239,159,39,.28); }
+  button { transition: all .18s ease; }
+  button:not(:disabled):hover { transform: translateY(-1px); }
+  .primary { background: linear-gradient(135deg, #1a4a8a, #0b2447); box-shadow: 0 4px 12px rgba(11,36,71,.3); }
+  .green { background: linear-gradient(135deg, #1f9d5a, #146c3d); }
+  .bar span { background: linear-gradient(90deg, #ef9f27, #1a4a8a); }
+
+  /* Records table */
+  .top h2 { color: #0b2447; font-size: 20px; }
+  .counter b { color: #0b2447; }
+  thead th { background: #0b2447; color: #fff; border-bottom: 3px solid #ef9f27; }
+  tbody tr:nth-child(even) { background: #f6f9fd; }
+  tbody tr:hover { background: #fdf3e0; }
+}
+</style>
+<meta name="theme-color" content="#0b2447">
+<!-- ===== END THEME ===== -->
+</head>
+<body>
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="loginScreen" class="card" style="max-width:460px;margin:40px auto;">
+
+    <div class="system-header">
+        <div style="width:100%; text-align:center;">
+
+            <div style="
+                font-size:24px;
+                font-weight:700;
+                margin-bottom:14px;
+                direction:rtl;
+            ">
+                بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
+            </div>
+
+            <div class="system-title">
+                HR Digital Employee Enrollment System
+            </div>
+
+            <div class="system-subtitle">
+                Secure Login
+            </div>
+
+        </div>
+    </div>
+
+    <div style="padding:24px;">
+
+        <label for="loginEmail">Email</label>
+        <input
+            type="email"
+            id="loginEmail"
+            placeholder="Enter your email"
+            autocomplete="username"
+        >
+
+        <label for="loginPassword" style="display:block;margin-top:16px;">
+            Password
+        </label>
+
+        <input
+            type="password"
+            id="loginPassword"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+        >
+
+        <button
+            type="button"
+            class="btn"
+            id="loginBtn"
+            style="width:100%;margin-top:20px;"
+        >
+            Login
+        </button>
+
+        <div
+            id="loginMsg"
+            style="margin-top:15px;text-align:center;"
+        ></div>
+
+        <div style="
+            margin-top:20px;
+            text-align:center;
+            font-size:12px;
+            color:#667085;
+            font-style:italic;
+        ">
+            Developed by the Grace of Allah
+        </div>
+
+    </div>
+</div>
+<!-- =========================================================
+     ISMAIL RESIN DIGITAL EMPLOYEE MANAGEMENT SYSTEM
+     MAIN DASHBOARD
+========================================================= -->
+
+<div id="mainDashboard">
+
+  <div class="dashboard-shell">
+
+    <!-- HEADER -->
+    <div class="dashboard-header">
+
+      <div class="dashboard-brand">
+
+        <div class="dashboard-logo">
+          IR
+        </div>
+
+        <div>
+          <div class="dashboard-company">
+            ISMAIL RESIN PVT LTD
+          </div>
+
+          <div class="dashboard-title">
+            Employee Digital Management System
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dashboard-user">
+
+        <div
+          class="dashboard-user-name"
+          id="dashboardUserName"
+        >
+          User
+        </div>
+
+        <div
+          class="dashboard-user-role"
+          id="dashboardUserRole"
+        >
+          Team Member
+        </div>
+
+        <button
+          type="button"
+          class="dashboard-logout"
+          onclick="logoutUser()"
+        >
+          ⇥ Logout
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- CONTENT -->
+    <div class="dashboard-content">
+
+      <div class="dashboard-welcome">
+
+        <h2>
+          Welcome to Employee Management System
+        </h2>
+
+        <p>
+          Manage employee records, enrolment, documents and administrative operations from one place.
+        </p>
+
+      </div>
+
+
+      <!-- QUICK STATS -->
+
+      <div class="dashboard-stats">
+
+        <div class="dashboard-stat">
+
+          <span class="dashboard-stat-icon">👥</span>
+
+          <div class="dashboard-stat-label">
+            Total Employees
+          </div>
+
+          <div
+            class="dashboard-stat-value"
+            id="dashboardEmployeeCount"
+          >
+            0
+          </div>
+
+        </div>
+
+
+        <div class="dashboard-stat">
+
+          <span class="dashboard-stat-icon">🔐</span>
+
+          <div class="dashboard-stat-label">
+            Current Access
+          </div>
+
+          <div
+            class="dashboard-stat-value"
+            id="dashboardAccess"
+            style="font-size:20px;"
+          >
+            Team Member
+          </div>
+
+        </div>
+
+
+        <div class="dashboard-stat">
+
+          <span class="dashboard-stat-icon">🏢</span>
+
+          <div class="dashboard-stat-label">
+            Company
+          </div>
+
+          <div
+            class="dashboard-stat-value"
+            style="font-size:18px;"
+          >
+            ISMAIL RESIN
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- MAIN MENU -->
+
+      <div class="dashboard-section-title">
+        Employee Management
+      </div>
+
+      <div class="dashboard-menu-grid">
+
+
+        <!-- NEW EMPLOYEE -->
+
+        <button
+          type="button"
+          class="dashboard-menu-card"
+          onclick="openDashboardModule('enrolment')"
+        >
+
+          <div class="dashboard-menu-icon">
+            👤
+          </div>
+
+          <div class="dashboard-menu-title">
+            New Employee Enrolment
+          </div>
+
+          <div class="dashboard-menu-text">
+            Register a new employee or search an existing CNIC.
+          </div>
+
+        </button>
+
+
+        <!-- SAVED RECORDS -->
+
+        <button
+          type="button"
+          class="dashboard-menu-card"
+          onclick="openDashboardModule('records')"
+        >
+
+          <div class="dashboard-menu-icon">
+            📋
+          </div>
+
+          <div class="dashboard-menu-title">
+            Saved Records
+          </div>
+
+          <div class="dashboard-menu-text">
+            Search, edit, view and print employee records.
+          </div>
+
+        </button>
+
+
+        <!-- STATISTICS -->
+
+        <button
+          type="button"
+          class="dashboard-menu-card"
+          onclick="openDashboardModule('statistics')"
+        >
+
+          <div class="dashboard-menu-icon">
+            📊
+          </div>
+
+          <div class="dashboard-menu-title">
+            Employee Statistics
+          </div>
+
+          <div class="dashboard-menu-text">
+            Employee totals and management statistics.
+          </div>
+
+        </button>
+
+
+        <!-- BACKUP -->
+
+        <button
+          type="button"
+          class="dashboard-menu-card admin-dashboard-item"
+          onclick="dashboardAction('backupBtn')"
+        >
+
+          <div class="dashboard-menu-icon">
+            💾
+          </div>
+
+          <div class="dashboard-menu-title">
+            Backup
+          </div>
+
+          <div class="dashboard-menu-text">
+            Create a secure employee database backup.
+          </div>
+
+        </button>
+
+
+        <!-- RESTORE -->
+
+        <button
+          type="button"
+          class="dashboard-menu-card admin-dashboard-item"
+          onclick="dashboardAction('restoreBtn')"
+        >
+
+          <div class="dashboard-menu-icon">
+            🔄
+          </div>
+
+          <div class="dashboard-menu-title">
+            Restore
+          </div>
+
+          <div class="dashboard-menu-text">
+            Restore employee records from the latest backup.
+          </div>
+
+        </button>
+
+
+        <!-- EXPORT -->
+
+        <button
+          type="button"
+          class="dashboard-menu-card"
+          onclick="dashboardAction('xlsxBtn')"
+        >
+
+          <div class="dashboard-menu-icon">
+            📤
+          </div>
+
+          <div class="dashboard-menu-title">
+            Export
+          </div>
+
+          <div class="dashboard-menu-text">
+            Export employee data to Excel or CSV.
+          </div>
+
+        </button>
+
+
+        <!-- USER / ROLE -->
+
+        <button
+          type="button"
+          class="dashboard-menu-card"
+          onclick="openDashboardModule('access')"
+        >
+
+          <div class="dashboard-menu-icon">
+            👨‍💼
+          </div>
+
+          <div class="dashboard-menu-title">
+            User / Role Access
+          </div>
+
+          <div class="dashboard-menu-text">
+            View your current system access and role.
+          </div>
+
+        </button>
+
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= FORM ================= -->
+<!-- ================= CNIC FIRST SCREEN ================= -->
+<div class="card cnic-gate" id="cnicGate">
+
+    <button
+    type="button"
+    id="logoutBtn"
+    onclick="logoutUser()"
+>
+    ⇥ Logout
+</button>
+<!-- ================= ADMIN NOTIFICATIONS ================= -->
+
+<button
+    type="button"
+    id="notificationBtn"
+    onclick="toggleNotifications()"
+>
+    🔔 Notifications
+    <span id="notificationBadge">0</span>
+</button>
+
+<div id="notificationPanel" style="display:none;">
+
+    <div class="notification-panel-header">
+        <strong>Notifications</strong>
+
+        <button
+            type="button"
+            id="closeNotificationsBtn"
+            onclick="toggleNotifications()"
+        >
+            ×
+        </button>
+    </div>
+
+    <div id="notificationList">
+        <div class="notification-empty">
+            No new notifications.
+        </div>
+    </div>
+
+</div>
+
+<!-- ================= END ADMIN NOTIFICATIONS ================= -->
+    <div class="system-header">
+        <div>
+            <div class="system-title">EMPLOYEE ENROLMENT FORM</div>
+            <div class="system-subtitle">
+                Employee Registration & Record Management
+            </div>
+        </div>
+
+        <div class="system-badge">
+            HR / ADMIN
+        </div>
+    </div>
+
+    <div class="cnic-gate-content">
+
+        <h2>Employee Identification</h2>
+
+        <p class="cnic-help">
+            Please enter the employee's CNIC to continue.
+            Existing employees will be loaded automatically.
+        </p>
+
+        <label for="searchCNIC">
+            CNIC <span class="req">*</span>
+        </label>
+
+        <input
+            type="text"
+            id="searchCNIC"
+            maxlength="15"
+            placeholder="12345-1234567-1"
+            autocomplete="off"
+        >
+
+        <div id="cnicMessage" class="cnic-message"></div>
+
+        <div class="cnic-actions">
+
+            <button
+                type="button"
+                class="btn primary"
+                onclick="searchEmployeeByCNIC()"
+            >
+                Search Employee
+            </button>
+
+            <button
+                type="button"
+                class="btn secondary"
+                onclick="startNewEmployee()"
+            >
+                New Employee
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- ================= END CNIC FIRST SCREEN ================= -->
+<div class="card" id="formCard" style="display:none;">
+  <h1>Employee Enrolment Form</h1>
+  <p class="sub">Fill in the new employee's details. Fields marked * are required.</p>
+
+  <form id="enrolForm" autocomplete="off" novalidate>
+<fieldset>
+  <legend>Personal Information</legend>
+
+  <div class="personal-layout">
+
+    <!-- PERSONAL INFORMATION -->
+    <div class="personal-fields">
+      <div class="grid">
+
+        <div>
+          <label class="req" for="fullName">Full Name</label>
+          <input id="fullName" name="fullName" required>
+        </div>
+
+        <div>
+          <label class="req" for="fatherName">Father Name</label>
+          <input id="fatherName" name="fatherName" required>
+        </div>
+
+        <div>
+          <label for="oldCnic">Old CNIC (Optional)</label>
+          <input id="oldCnic" name="oldCnic"
+                 placeholder="12345-1234567-1">
+        </div>
+
+        <div>
+          <label class="req" for="cnic">CNIC / National ID</label>
+          <input id="cnic" name="cnic"
+                 placeholder="12345-1234567-1" required>
+        </div>
+
+        <div>
+          <label class="req" for="cnicIssueDate">CNIC Issue Date</label>
+          <input id="cnicIssueDate" name="cnicIssueDate"
+                 type="date" required>
+        </div>
+
+        <div>
+          <label class="req" for="cnicExpiryDate">CNIC Expiry Date</label>
+          <input id="cnicExpiryDate" name="cnicExpiryDate"
+                 type="date" required>
+        </div>
+
+        <div>
+          <label class="req" for="dob">Date of Birth</label>
+          <input id="dob" name="dob" type="date" required>
+        </div>
+
+        <div>
+          <label class="req" for="gender">Gender</label>
+          <select id="gender" name="gender" required>
+            <option value="">-- Select --</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="req" for="maritalStatus">Marital Status</label>
+          <select id="maritalStatus" name="maritalStatus" required>
+            <option value="">-- Select --</option>
+            <option>Single</option>
+            <option>Married</option>
+            <option>Divorced</option>
+            <option>Widowed</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="req" for="nationality">Nationality</label>
+          <input id="nationality" name="nationality"
+                 value="Pakistani" required>
+        </div>
+
+        <div>
+          <label for="personalEmail">Personal Email</label>
+          <input id="personalEmail" name="personalEmail"
+                 type="email"
+                 autocomplete="off"
+                 placeholder="name@gmail.com">
+        </div>
+
+        <div>
+          <label for="professionalEmail">Professional Email</label>
+          <input id="professionalEmail" name="professionalEmail"
+                 type="email"
+                 autocomplete="off"
+                 placeholder="name@company.com">
+        </div>
+
+        <div>
+          <label class="req" for="phone">Phone</label>
+          <input id="phone" name="phone"
+                 autocomplete="off"
+                 placeholder="0300-1234567"
+                 required>
+        </div>
+
+        <div>
+          <label class="req" for="lastQualification">Last Qualification</label>
+          <input id="lastQualification"
+                 name="lastQualification"
+                 required>
+        </div>
+
+       <div class="full">
+  <label class="req" for="educationFrom">Education From</label>
+  <textarea
+    id="educationFrom"
+    name="educationFrom"
+    placeholder="Enter education details"
+    required
+  ></textarea>
+</div>
+
+        <div class="full">
+  <label for="address">Permanent Address</label>
+  <textarea
+    id="address"
+    name="address"
+    placeholder="Enter permanent address"
+  ></textarea>
+</div>
+<div class="full">
+  <label for="temporaryAddress">Temporary Address</label>
+  <textarea
+    id="temporaryAddress"
+    name="temporaryAddress"
+    placeholder="Enter temporary address"
+  ></textarea>
+</div>
+
+      </div> <!-- END .grid -->
+    </div> <!-- END .personal-fields -->
+
+    <!-- EMPLOYEE PHOTO -->
+    <div class="photo-panel">
+      <div class="photo-panel-title">
+        Employee Photo (Optional)
+      </div>
+
+      <div class="photo-frame" id="photoFrame">
+
+        <div class="photo-placeholder" id="photoPlaceholder">
+          No photo selected
+        </div>
+
+        <img id="photoPreview"
+             alt="Employee Photo">
+
+      </div>
+
+      <div class="photo-actions">
+
+        <button type="button"
+                class="ghost"
+                id="photoBtn">
+          Capture / Select Photo
+        </button>
+
+        <button type="button"
+                class="ghost"
+                id="removePhotoBtn">
+          Remove Photo
+        </button>
+
+      </div>
+
+      <input type="file"
+             id="photoInput"
+             accept="image/*"
+             capture="user"
+             hidden>
+
+      <div class="photo-note">
+        Optional • JPG/PNG • Employee photo is not mandatory.
+      </div>
+
+    </div>
+
+  </div>
+</fieldset>
+
+    <fieldset class="compact">
+      <legend>References</legend>
+      <div class="compact-grid">
+        <div><label class="req" for="personalReference">Personal Reference Name</label><input id="personalReference" name="personalReference" required></div>
+        <div><label class="req" for="personalReferencePhone">Personal Reference Phone</label><input id="personalReferencePhone" name="personalReferencePhone" autocomplete="off" placeholder="0300-1234567" required></div>
+        <div><label class="req" for="professionalReference">Professional Reference Name</label><input id="professionalReference" name="professionalReference" required></div>
+        <div><label class="req" for="professionalReferencePhone">Professional Reference Phone</label><input id="professionalReferencePhone" name="professionalReferencePhone" autocomplete="off" placeholder="0300-1234567" required></div>
+        <div><label for="referenceEmail">Reference Email (optional)</label><input id="referenceEmail" name="referenceEmail" type="email" autocomplete="off" placeholder="reference@example.com"></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="compact">
+      <legend>Employment Details</legend>
+      <div class="compact-grid">
+        <div><label class="req" for="joinDate">Joining Date</label><input id="joinDate" name="joinDate" type="date" required></div>
+        <div><label class="req" for="bioId">Biostar ID</label><input id="bioId" name="bioId" autocomplete="off" required></div>
+        <div><label for="hcmId">HCM ID</label><input id="hcmId" name="hcmId" autocomplete="off"></div>
+        <div><label for="grade">Grade</label><input id="grade" name="grade"></div>
+        <div><label class="req" for="designation">Designation</label><input id="designation" name="designation" required></div>
+        <div><label class="req" for="department">Department</label>
+          <select id="department" name="department" required>
+            <option value="">-- Select --</option>
+            <option>Administration</option><option>Production CP</option><option>Production SSP</option>
+            <option>Quality Assurance</option><option>Utilities</option><option>Mechanical Maintenance</option>
+            <option>Electrical Maintenance &amp; Instrument</option><option>Technical Store</option>
+            <option>Health &amp; Safety</option><option>Accounts</option><option>Dispatch</option>
+          </select></div>
+        <div><label for="category">Category</label>
+          <select id="category" name="category">
+            <option>Permanent</option><option>Contractual</option><option>GTE</option><option>Internship</option>
+          </select></div>
+        <div><label for="salary">Monthly Salary</label><input id="salary" name="salary" type="number" min="0" step="1000" placeholder="50000"></div>
+        <div><label for="accountNumber">Account Number</label><input id="accountNumber" name="accountNumber" autocomplete="off" placeholder="Enter Account Number"></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="compact">
+      <legend>Emergency Contact</legend>
+      <div class="compact-grid">
+        <div><label for="ecName">Contact Name</label><input id="ecName" name="ecName"></div>
+        <div><label for="ecRelation">Relationship</label><input id="ecRelation" name="ecRelation"></div>
+        <div><label for="ecPhone">Contact Phone</label><input id="ecPhone" name="ecPhone" autocomplete="off"></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="compact declaration-field">
+      <legend>Declaration</legend>
+      <label class="check">
+        <input type="checkbox" id="agree" name="agree" required>
+        I confirm the information provided above is correct.
+      </label>
+    </fieldset>
+<div class="print-signatures">
+  <div>
+    <span></span>
+    Employee Signature
+  </div>
+
+  <div>
+    <span></span>
+    Authorized Signature
+  </div>
+</div>
+
+    <div class="bar"><span id="progress"></span></div>
+
+    <div class="actions">
+      <button type="submit" class="primary" id="submitBtn">Submit Enrolment</button>
+      <button type="button" class="ghost" id="clearBtn">Clear Form</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+  </form>
+</div>
+
+<!-- ================= SAVED RECORDS ================= -->
+<div class="card" id="recordsCard">
+  <div class="top">
+    <h2>Saved Records</h2>
+    <div class="counter">Total employees enrolled: <b id="count">0</b></div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>S.No</th><th>Biostar ID</th><th>HCM ID</th><th>Name</th><th>Father Name</th>
+          <th>Designation</th><th>Department</th><th>Joining Date</th><th>Date of Birth</th>
+          <th>CNIC</th><th>Issue Date</th><th>Expiry Date</th><th>Category</th>
+          <th>Account No</th><th>Employee Email</th><th>Phone</th><th>Saved At</th><th>Saved By</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="recordsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="toolbar">
+    <button type="button" class="green" id="xlsxBtn">Export to Excel (.xlsx)</button>
+    <button type="button" class="ghost" id="csvBtn">Export to CSV</button>
+    <button type="button" class="ghost" id="printFormBtn">Print Form (A4)</button>
+      <button type="button" class="ghost" id="printBtn">Print All (Form + Table)</button>
+    <button type="button" class="ghost" id="backupBtn">Backup Records</button>
+    <button type="button" class="ghost" id="restoreBtn">Restore Last Backup</button>
+    <button type="button" class="ghost" id="jsonBtn">Export JSON</button>
+    <button type="button" class="ghost" id="wipeBtn">Delete All Records</button>
+  </div>
+</div>
+
+<!-- ================= PRINT AREA (single employee sheet) ================= -->
+<div id="printArea"></div>
+
+<script>
+/* =========================================================
+   STORAGE
+========================================================= */
+const SUPABASE_URL = 'https://tjmvylxhddvxevaehlfb.supabase.co';
+
+const SUPABASE_PUBLISHABLE_KEY =
+    'sb_publishable_1vx9mxp2f60dD8fAB9_tYg_1jSW80ig';
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+);
+/* =========================================================
+   SUPABASE CONNECTION TEST
+========================================================= */
+supabaseClient
+    .from('profiles')
+    .select('id, role')
+    .limit(1)
+    .then(function(result) {
+        if (result.error) {
+            console.error(
+                'SUPABASE CONNECTION TEST FAILED:',
+                result.error
+            );
+        } else {
+            console.log(
+                'SUPABASE CONNECTION TEST SUCCESS:',
+                result.data
+            );
+        }
+    });
+const form      = document.getElementById('enrolForm');
+const msg       = document.getElementById('msg');
+const progress  = document.getElementById('progress');
+const tbody     = document.getElementById('recordsBody');
+const countEl   = document.getElementById('count');
+const submitBtn = document.getElementById('submitBtn');
+const printArea = document.getElementById('printArea');
+
+const STORE        = 'employee_enrolments_v2';
+const BACKUP_STORE = 'employee_enrolments_backups_v2';
+const MAX_BACKUPS  = 5;
+
+let editKey = null;
+let currentUser = null;
+let currentUserRole = null;
+/* =========================================================
+   AUTHENTICATION
+========================================================= */
+
+const loginScreen  = document.getElementById('loginScreen');
+const loginEmail   = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const loginBtn     = document.getElementById('loginBtn');
+const loginMsg     = document.getElementById('loginMsg');
+
+async function loginUser() {
+
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+
+    if (!email || !password) {
+        loginMsg.textContent = 'Please enter email and password.';
+        loginMsg.style.color = '#b42318';
+        return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Logging in...';
+    loginMsg.textContent = '';
+
+    const { data, error } =
+        await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+    if (error) {
+
+        console.error('LOGIN FAILED:', error);
+
+        loginMsg.textContent =
+            error.message || 'Login failed.';
+
+        loginMsg.style.color = '#b42318';
+
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+
+        return;
+    }
+
+    console.log('LOGIN SUCCESS:', data.user);
+
+    const { data: profile, error: profileError } =
+        await supabaseClient
+            .from('profiles')
+            .select('id, full_name, role')
+            .eq('id', data.user.id)
+            .single();
+
+    if (profileError || !profile) {
+
+        console.error(
+            'PROFILE LOAD FAILED:',
+            profileError
+        );
+
+        await supabaseClient.auth.signOut();
+
+        loginMsg.textContent =
+            'User profile could not be loaded.';
+
+        loginMsg.style.color = '#b42318';
+
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+
+        return;
+    }
+
+    console.log('USER ROLE:', profile.role);
+currentUser = data.user;
+currentUserRole = profile.role;
+
+/* ================= REFRESH TABLE AFTER LOGIN ================= */
+
+await renderRecords();
+
+loginScreen.style.display = 'none';
+showDashboardAfterLogin();
+
+loginMsg.textContent = '';
+
+    console.log(
+        'AUTHENTICATION COMPLETE:',
+        profile.full_name,
+        profile.role
+    );
+}
+async function logoutUser() {
+
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+        console.error('LOGOUT FAILED:', error);
+        alert('Logout failed. Please try again.');
+        return;
+    }
+
+    console.log('LOGOUT SUCCESS');
+
+    loginScreen.style.display = 'block';
+
+document.getElementById('mainDashboard').style.display = 'none';
+document.getElementById('cnicGate').style.display = 'none';
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('recordsCard').style.display = 'none';
+}
+
+    loginEmail.value = '';
+    loginPassword.value = '';
+
+    loginMsg.textContent = '';
+
+loginBtn.addEventListener('click', loginUser);
+console.log('LOGIN BUTTON LISTENER READY');
+loginPassword.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        loginUser();
+    }
+});
+/* =========================================================
+   SESSION CONTROL
+========================================================= */
+/* =========================================================
+   STEP 1 - MAIN DASHBOARD
+========================================================= */
+
+function showDashboard() {
+
+  const dashboard =
+    document.getElementById('mainDashboard');
+
+  const gate =
+    document.getElementById('cnicGate');
+
+  const formCard =
+    document.getElementById('formCard');
+
+  const recordsCard =
+    document.getElementById('recordsCard');
+
+  if (dashboard) dashboard.style.display = 'block';
+  if (gate) gate.style.display = 'none';
+  if (formCard) formCard.style.display = 'none';
+  if (recordsCard) recordsCard.style.display = 'none';
+
+  updateDashboardUser();
+
+  loadDashboardStats();
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+
+function updateDashboardUser() {
+
+  const nameEl =
+    document.getElementById('dashboardUserName');
+
+  const roleEl =
+    document.getElementById('dashboardUserRole');
+
+  const accessEl =
+    document.getElementById('dashboardAccess');
+
+  let name = 'User';
+
+  if (currentUser && currentUser.email) {
+    name = currentUser.email;
+  }
+
+  if (nameEl) {
+    nameEl.textContent = name;
+  }
+
+  const role =
+    currentUserRole === 'admin'
+      ? 'Administrator'
+      : 'Team Member';
+
+  if (roleEl) {
+    roleEl.textContent = role;
+  }
+
+  if (accessEl) {
+    accessEl.textContent = role;
+  }
+}
+
+
+async function loadDashboardStats() {
+
+  const countEl =
+    document.getElementById(
+      'dashboardEmployeeCount'
+    );
+
+  if (!countEl) return;
+
+  const { count, error } =
+    await supabaseClient
+      .from('employees')
+      .select('id', {
+        count: 'exact',
+        head: true
+      });
+
+  if (error) {
+
+    console.error(
+      'DASHBOARD EMPLOYEE COUNT FAILED:',
+      error
+    );
+
+    countEl.textContent = '—';
+
+    return;
+  }
+
+  countEl.textContent =
+    count !== null ? count : 0;
+}
+
+
+function openDashboardModule(module) {
+
+  const dashboard =
+    document.getElementById('mainDashboard');
+
+  const gate =
+    document.getElementById('cnicGate');
+
+  const recordsCard =
+    document.getElementById('recordsCard');
+
+  if (dashboard) {
+    dashboard.style.display = 'none';
+  }
+
+  if (module === 'enrolment') {
+
+    if (gate) gate.style.display = 'block';
+
+    if (recordsCard) {
+      recordsCard.style.display = 'none';
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    return;
+  }
+
+
+  if (module === 'records') {
+
+    if (gate) gate.style.display = 'none';
+
+    if (recordsCard) {
+      recordsCard.style.display = 'block';
+    }
+
+    renderRecords();
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    return;
+  }
+
+
+  if (module === 'statistics') {
+
+    alert(
+      'Employee Statistics module will be added in the next step.'
+    );
+
+    showDashboard();
+
+    return;
+  }
+
+
+  if (module === 'access') {
+
+    alert(
+      'Current access: ' +
+      (currentUserRole === 'admin'
+        ? 'Administrator'
+        : 'Team Member')
+    );
+
+    showDashboard();
+
+    return;
+  }
+
+}
+
+
+function dashboardAction(buttonId) {
+
+  if (currentUserRole !== 'admin' &&
+      (buttonId === 'backupBtn' ||
+       buttonId === 'restoreBtn')) {
+
+    alert(
+      'This function is available to Admin only.'
+    );
+
+    return;
+  }
+
+  const button =
+    document.getElementById(buttonId);
+
+  if (!button) {
+
+    console.warn(
+      'Dashboard action button not found:',
+      buttonId
+    );
+
+    return;
+  }
+
+  button.click();
+}
+
+
+function showDashboardAfterLogin() {
+
+  showDashboard();
+
+  applyRoleUI();
+
+}
+
+async function checkSession() {
+
+    const { data, error } =
+        await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error('SESSION CHECK FAILED:', error);
+        return;
+    }
+
+    if (!data.session) {
+
+        loginScreen.style.display = 'block';
+
+        document.getElementById('cnicGate').style.display = 'none';
+        document.getElementById('formCard').style.display = 'none';
+        document.getElementById('recordsCard').style.display = 'none';
+
+        return;
+    }
+
+    console.log(
+    'ACTIVE SESSION:',
+    data.session.user.email
+);
+
+/* ================= LOAD USER PROFILE ================= */
+
+const { data: profile, error: profileError } =
+    await supabaseClient
+        .from('profiles')
+        .select('id, full_name, role')
+        .eq('id', data.session.user.id)
+        .single();
+
+if (profileError || !profile) {
+
+    console.error(
+        'SESSION PROFILE LOAD FAILED:',
+        profileError
+    );
+
+    await supabaseClient.auth.signOut();
+
+    return;
+}
+
+currentUser = data.session.user;
+currentUserRole = profile.role;
+
+/* ================= REFRESH TABLE AFTER SESSION LOAD ================= */
+
+await renderRecords();
+
+if (currentUserRole === 'admin') {
+    startNotificationRealtime();
+    renderAdminNotifications();
+}
+
+console.log(
+    'SESSION USER ROLE:',
+    currentUserRole
+);
+
+/* ================= SHOW SYSTEM ================= */
+
+loginScreen.style.display = 'none';
+showDashboardAfterLogin();
+}
+
+
+/* Check session when page loads */
+checkSession();
+
+
+/* Detect login/logout changes */
+supabaseClient.auth.onAuthStateChange(function(event, session) {
+
+    console.log('AUTH STATE:', event);
+
+    if (!session) {
+
+    loginScreen.style.display = 'block';
+
+    document.getElementById('mainDashboard').style.display = 'none';
+    document.getElementById('cnicGate').style.display = 'none';
+        document.getElementById('formCard').style.display = 'none';
+        document.getElementById('recordsCard').style.display = 'none';
+
+    }
+
+});
+const COLS = [
+  ['bioId','Biostar ID'],['hcmId','HCM ID'],['fullName','Name'],['fatherName','Father Name'],
+  ['designation','Designation'],['department','Department'],['grade','Grade'],
+  ['joinDate','Joining Date'],['dob','Date of Birth'],['gender','Gender'],
+  ['maritalStatus','Marital Status'],['nationality','Nationality'],['cnic','CNIC'],
+  ['oldCnic','Old CNIC'],['cnicIssueDate','CNIC Issue Date'],['cnicExpiryDate','CNIC Expiry Date'],
+  ['lastQualification','Last Qualification'],['educationFrom','Education From'],
+  ['category','Category'],['salary','Monthly Salary'],['accountNumber','Account Number'],
+  ['employeeEmail','Employee Email'],['personalEmail','Personal Email'],
+  ['professionalEmail','Professional Email'],['phone','Phone'],['address','Address'],
+  ['personalReference','Personal Reference'],['personalReferencePhone','Personal Reference Phone'],
+  ['professionalReference','Professional Reference'],['professionalReferencePhone','Professional Reference Phone'],
+  ['referenceEmail','Reference Email'],['ecName','Emergency Contact'],
+  ['ecRelation','Emergency Relation'],['ecPhone','Emergency Phone'],
+  ['savedAt','Saved At'],['updatedAt','Last Updated']
+];
+
+/* =========================================================
+   STORAGE FUNCTIONS
+========================================================= */
+async function loadFromSupabase() {
+
+  const { data, error } = await supabaseClient
+    .from('employees')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('SUPABASE LOAD FAILED:', error);
+    show('Unable to load employee records from database.', 'err');
+    return [];
+  }
+
+  console.log(
+    'SUPABASE LOAD SUCCESS:',
+    data ? data.length : 0,
+    'records'
+  );
+
+  return data || [];
+}
+/* =========================================================
+   LOAD USER PROFILES — TRACKING
+========================================================= */
+async function loadUserProfiles() {
+
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('id, full_name, role');
+
+  if (error) {
+    console.error('PROFILES LOAD FAILED:', error);
+    return {};
+  }
+
+  const map = {};
+
+  (data || []).forEach(function(profile) {
+    map[profile.id] =
+      profile.full_name ||
+      profile.id;
+  });
+
+  return map;
+}
+/* =========================================================
+   LOAD ADMIN NOTIFICATIONS
+========================================================= */
+async function loadAdminNotifications() {
+
+  const { data, error } = await supabaseClient
+    .from('employee_notifications')
+    .select(`
+      id,
+      employee_id,
+      action,
+      message,
+      created_by,
+      created_at,
+      is_read
+    `)
+    .eq('is_read', false)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(
+      'NOTIFICATIONS LOAD FAILED:',
+      error
+    );
+    return [];
+  }
+
+  console.log(
+    'ADMIN NOTIFICATIONS:',
+    data ? data.length : 0
+  );
+
+  return data || [];
+}
+/* =========================================================
+   ADMIN NOTIFICATION UI
+========================================================= */
+
+async function renderAdminNotifications() {
+
+  if (currentUserRole !== 'admin') {
+    return;
+  }
+
+  const notifications =
+    await loadAdminNotifications();
+
+  const badge =
+    document.getElementById('notificationBadge');
+
+  const list =
+    document.getElementById('notificationList');
+
+  if (!badge || !list) {
+    return;
+  }
+
+  const total = notifications.length;
+
+  if (total > 0) {
+
+    badge.textContent =
+      total > 99 ? '99+' : total;
+
+    badge.style.display = 'inline-flex';
+
+  } else {
+
+    badge.textContent = '0';
+    badge.style.display = 'none';
+  }
+
+  if (!notifications.length) {
+
+    list.innerHTML =
+      '<div class="notification-empty">' +
+      'No new notifications.' +
+      '</div>';
+
+    return;
+  }
+
+  const userProfiles =
+    await loadUserProfiles();
+
+  list.innerHTML = '';
+
+  notifications.forEach(function(notification) {
+
+    const item =
+      document.createElement('div');
+
+    item.className =
+      'notification-item';
+
+    const createdBy =
+      userProfiles[notification.created_by] ||
+      'Unknown User';
+
+    const time =
+      notification.created_at
+        ? new Date(
+            notification.created_at
+          ).toLocaleString()
+        : '';
+
+    item.innerHTML =
+      '<div class="notification-message">' +
+        safe(notification.message) +
+      '</div>' +
+
+      '<div class="notification-meta">' +
+        safe(createdBy) +
+        ' • ' +
+        safe(time) +
+      '</div>';
+
+    list.appendChild(item);
+
+  });
+}
+
+
+/* =========================================================
+   TOGGLE NOTIFICATIONS
+========================================================= */
+
+function toggleNotifications() {
+
+  const panel =
+    document.getElementById(
+      'notificationPanel'
+    );
+
+  if (!panel) {
+    return;
+  }
+
+  if (
+    panel.style.display === 'none' ||
+    panel.style.display === ''
+  ) {
+
+    panel.style.display = 'block';
+
+    renderAdminNotifications();
+
+  } else {
+
+    panel.style.display = 'none';
+
+  }
+}
+/* =========================================================
+   REAL-TIME ADMIN NOTIFICATIONS
+========================================================= */
+
+function startNotificationRealtime() {
+
+  if (currentUserRole !== 'admin') {
+    return;
+  }
+
+  supabaseClient
+    .channel('admin-employee-notifications')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'employee_notifications'
+      },
+      function(payload) {
+
+        console.log(
+          'REALTIME NOTIFICATION RECEIVED:',
+          payload.new
+        );
+
+        renderAdminNotifications();
+
+      }
+    )
+    .subscribe(function(status) {
+
+      console.log(
+        'NOTIFICATION REALTIME STATUS:',
+        status
+      );
+
+    });
+}
+function load() {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORE) || '[]');
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+function save(all) { localStorage.setItem(STORE, JSON.stringify(all)); }
+
+function createBackup() {
+  const all = load();
+  if (!all.length) return false;
+  let backups;
+  try {
+    backups = JSON.parse(localStorage.getItem(BACKUP_STORE) || '[]');
+    if (!Array.isArray(backups)) backups = [];
+  } catch (e) { backups = []; }
+  backups.push({ createdAt: new Date().toISOString(), records: all });
+  while (backups.length > MAX_BACKUPS) backups.shift();
+  localStorage.setItem(BACKUP_STORE, JSON.stringify(backups));
+  return true;
+}
+function loadLastBackup() {
+  try {
+    const backups = JSON.parse(localStorage.getItem(BACKUP_STORE) || '[]');
+    if (!Array.isArray(backups) || !backups.length) return null;
+    return backups[backups.length - 1];
+  } catch (e) { return null; }
+}
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function safe(v) { return (v === undefined || v === null) ? '' : String(v); }
+function isEmail(v) { return /^\S+@\S+\.\S+$/.test(String(v || '').trim()); }
+/* =========================================================
+   EMPLOYEE PHOTO
+========================================================= */
+
+let photoData = '';
+
+function resetPhoto() {
+
+  photoData = '';
+
+  const input = document.getElementById('photoInput');
+  const img = document.getElementById('photoPreview');
+  const placeholder = document.getElementById('photoPlaceholder');
+
+  if (input) input.value = '';
+
+  if (img) {
+    img.src = '';
+    img.style.display = 'none';
+  }
+
+  if (placeholder) {
+    placeholder.style.display = 'block';
+  }
+}
+
+function setPhotoPreview(dataUrl) {
+
+  const img = document.getElementById('photoPreview');
+  const placeholder = document.getElementById('photoPlaceholder');
+
+  if (!img || !placeholder) return;
+
+  if (!dataUrl) {
+    resetPhoto();
+    return;
+  }
+
+  img.src = dataUrl;
+  img.style.display = 'block';
+  placeholder.style.display = 'none';
+}
+
+const photoBtn = document.getElementById('photoBtn');
+const removePhotoBtn = document.getElementById('removePhotoBtn');
+const photoInput = document.getElementById('photoInput');
+
+if (photoBtn && photoInput) {
+
+  photoBtn.onclick = function() {
+    photoInput.click();
+  };
+
+}
+
+if (removePhotoBtn) {
+
+  removePhotoBtn.onclick = function() {
+    resetPhoto();
+  };
+
+}
+
+if (photoInput) {
+
+  photoInput.addEventListener('change', function() {
+
+    const file = this.files && this.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+
+      show('Please select an image file.', 'err');
+
+      resetPhoto();
+
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+
+      photoData = e.target.result;
+
+      setPhotoPreview(photoData);
+
+    };
+
+    reader.readAsDataURL(file);
+
+  });
+
+}
+/* =========================================================
+   CNIC GATE
+========================================================= */
+
+function normalizeCNIC(value) {
+ return safe(value).replace(/\D/g, '');
+}
+
+function formatCNIC(value) {
+  const digits = normalizeCNIC(value).slice(0, 13);
+
+  if (digits.length <= 5) return digits;
+  if (digits.length <= 12) {
+    return digits.slice(0, 5) + '-' + digits.slice(5);
+  }
+
+  return digits.slice(0, 5) + '-' +
+         digits.slice(5, 12) + '-' +
+         digits.slice(12);
+}
+
+async function findEmployeeByCNIC(cnic) {
+
+  const key = normalizeCNIC(cnic);
+
+  if (key.length !== 13) {
+    return null;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from('employees')
+      .select('*')
+      .eq('cnic', key)
+      .maybeSingle();
+
+  if (error) {
+
+    console.error(
+      'SUPABASE CNIC SEARCH FAILED:',
+      error
+    );
+
+    setCnicGateMessage(
+      'Unable to search employee database.',
+      'error'
+    );
+
+    return null;
+  }
+
+  console.log(
+    'SUPABASE CNIC SEARCH:',
+    data
+  );
+
+  return data || null;
+}
+function setCnicGateMessage(text, kind) {
+  const el = document.getElementById('cnicMessage');
+
+  if (!el) return;
+
+  el.textContent = text || '';
+  el.className = 'cnic-message' + (kind ? ' ' + kind : '');
+}
+
+function openEmployeeForm() {
+  const gate = document.getElementById('cnicGate');
+  const card = document.getElementById('formCard');
+
+  if (gate) gate.style.display = 'none';
+  if (card) card.style.display = 'block';
+}
+
+function showCnicGate() {
+  const gate = document.getElementById('cnicGate');
+  const card = document.getElementById('formCard');
+
+  if (gate) gate.style.display = 'block';
+  if (card) card.style.display = 'none';
+}
+
+function loadEmployeeIntoForm(employee) {
+
+  const map = {
+
+    bioId: 'bio_id',
+    hcmId: 'hcm_id',
+    fullName: 'full_name',
+    fatherName: 'father_name',
+    oldCnic: 'old_cnic',
+    cnic: 'cnic',
+    cnicIssueDate: 'cnic_issue_date',
+    cnicExpiryDate: 'cnic_expiry_date',
+    dob: 'date_of_birth',
+    gender: 'gender',
+    maritalStatus: 'marital_status',
+    nationality: 'nationality',
+    personalEmail: 'personal_email',
+    professionalEmail: 'professional_email',
+    phone: 'phone',
+    lastQualification: 'last_qualification',
+    educationFrom: 'education_from',
+address: 'present_address',
+temporaryAddress: 'temporary_address',
+
+personalReference: 'reference_1_name',
+    personalReferencePhone: 'reference_1_phone',
+    professionalReference: 'reference_2_name',
+    professionalReferencePhone: 'reference_2_phone',
+    referenceEmail: 'reference_email',
+
+    joinDate: 'joining_date',
+    bioId: 'bio_id',
+    hcmId: 'hcm_id',
+    grade: 'grade',
+    designation: 'designation',
+    department: 'department',
+    category: 'category',
+    salary: 'salary',
+    accountNumber: 'account_no',
+
+    ecName: 'emergency_name',
+    ecRelation: 'emergency_relation',
+    ecPhone: 'emergency_phone'
+
+  };
+
+  getFormFields().forEach(function(el) {
+
+    const field = form.querySelector(
+      '[name="' + el.name + '"]'
+    );
+
+    if (!field) return;
+
+    if (field.type === 'checkbox') {
+
+      field.checked =
+        employee.declaration_agreed === true;
+
+      return;
+    }
+
+    const dbField = map[field.name];
+
+    if (dbField) {
+
+      field.value =
+        safe(employee[dbField]);
+
+    }
+
+  });
+
+  setPhotoPreview(
+    safe(employee.photo_url)
+  );
+}
+
+async function startNewEmployee() {
+
+  const search = document.getElementById('searchCNIC');
+
+  const cnic = normalizeCNIC(
+    search ? search.value : ''
+  );
+
+  if (cnic.length !== 13) {
+
+    setCnicGateMessage(
+      'Please enter a valid 13-digit CNIC.',
+      'error'
+    );
+
+    if (search) search.focus();
+
+    return;
+  }
+
+  const existing = await findEmployeeByCNIC(cnic);
+
+  if (existing) {
+
+    setCnicGateMessage(
+      'This CNIC already exists. Existing employee record will be loaded.',
+      'error'
+    );
+
+    loadEmployeeIntoForm(existing);
+
+    editKey = uniqueKey(existing);
+
+    submitBtn.textContent = 'Update Employee';
+
+    openEmployeeForm();
+
+    updateProgress();
+
+    return;
+  }
+
+  form.reset();
+
+  const cnicField = document.getElementById('cnic');
+
+  if (cnicField) {
+    cnicField.value = formatCNIC(cnic);
+  }
+
+  const nationality = document.getElementById('nationality');
+
+  if (nationality) {
+    nationality.value = 'Pakistani';
+  }
+
+  editKey = null;
+resetPhoto();
+
+  submitBtn.textContent = 'Submit Enrolment';
+
+  hideMsg();
+
+  openEmployeeForm();
+
+  updateProgress();
+
+  const fullName = document.getElementById('fullName');
+
+  if (fullName) fullName.focus();
+}
+
+async function searchEmployeeByCNIC() {
+
+  const search = document.getElementById('searchCNIC');
+
+  const cnic = normalizeCNIC(
+    search ? search.value : ''
+  );
+
+  if (cnic.length !== 13) {
+
+    setCnicGateMessage(
+      'Please enter a valid 13-digit CNIC (13 digits).',
+      'error'
+    );
+
+    if (search) search.focus();
+
+    return;
+  }
+
+  const employee = await findEmployeeByCNIC(cnic);
+
+  if (employee) {
+
+    loadEmployeeIntoForm(employee);
+
+    editKey = uniqueKey(employee);
+
+    submitBtn.textContent = 'Update Employee';
+
+    setCnicGateMessage(
+      'Existing employee found.',
+      'success'
+    );
+
+    openEmployeeForm();
+
+    updateProgress();
+
+    return;
+  }
+
+  form.reset();
+
+  const cnicField = document.getElementById('cnic');
+
+  if (cnicField) {
+    cnicField.value = formatCNIC(cnic);
+  }
+
+  const nationality = document.getElementById('nationality');
+
+  if (nationality) {
+    nationality.value = 'Pakistani';
+  }
+
+  editKey = null;
+resetPhoto();
+  submitBtn.textContent = 'Submit Enrolment';
+
+  hideMsg();
+
+  openEmployeeForm();
+
+  updateProgress();
+
+  const fullName = document.getElementById('fullName');
+
+  if (fullName) fullName.focus();
+}
+
+const searchCnicInput =
+  document.getElementById('searchCNIC');
+
+if (searchCnicInput) {
+
+  searchCnicInput.addEventListener(
+    'input',
+    function() {
+
+      this.value = formatCNIC(this.value);
+
+      setCnicGateMessage('', '');
+    }
+  );
+
+  searchCnicInput.addEventListener(
+    'keydown',
+    function(e) {
+
+      if (e.key === 'Enter') {
+
+        e.preventDefault();
+
+        searchEmployeeByCNIC();
+      }
+
+    }
+  );
+}
+
+function employeeEmail(record) {
+  const prof = safe(record.professionalEmail).trim();
+  const pers = safe(record.personalEmail).trim();
+  if (prof) return prof;
+  if (pers) return pers;
+  return '';
+}
+
+/* ---- ISO timestamp → readable local time (Asia/Karachi) ---- */
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return safe(iso);
+  return d.toLocaleString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  });
+}
+
+/* ---- plain date (yyyy-mm-dd → dd Mmm yyyy) ---- */
+function formatDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return safe(value);
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function getRecordName(r) {
+  return safe(r.fullName).trim() || safe(r.bioId).trim() || 'Employee';
+}
+function uniqueKey(r) { return safe(r.bioId).trim().toLowerCase(); }
+
+function getFormFields() {
+  return [...form.querySelectorAll('input, select, textarea')]
+    .filter(el => el.type !== 'file')
+    .filter(el => el.type !== 'checkbox' || el.id === 'agree');
+}
+
+function show(text, kind) { msg.textContent = text; msg.className = 'msg ' + kind; }
+function hideMsg() { msg.className = 'msg'; msg.textContent = ''; }
+
+function updateProgress() {
+  const req = getFormFields().filter(el => el.required);
+  const done = req.filter(el =>
+    el.type === 'checkbox' ? el.checked : String(el.value || '').trim() !== ''
+  ).length;
+  progress.style.width = (req.length ? (done / req.length) * 100 : 0) + '%';
+}
+
+/* =========================================================
+   RENDER TABLE
+========================================================= */
+async function renderRecords() {
+
+  const all = await loadFromSupabase();
+const userProfiles = await loadUserProfiles();	
+  countEl.textContent = all.length;
+  tbody.innerHTML = '';
+
+  if (!all.length) {
+    tbody.innerHTML =
+      '<tr><td class="empty" colspan="18">No records yet. Submit the form to add the first employee.</td></tr>';
+    return;
+  }
+
+  all.forEach((record, index) => {
+
+    const tr = document.createElement('tr');
+
+    const cells = [
+      index + 1,
+      record.bio_id,
+      record.hcm_id,
+      record.full_name,
+      record.father_name,
+      record.designation,
+      record.department,
+      record.joining_date,
+      record.date_of_birth,
+      record.cnic,
+      record.cnic_issue_date,
+      record.cnic_expiry_date,
+      record.category,
+      record.account_no,
+      record.professional_email || record.personal_email,
+      record.phone,
+      formatTime(record.created_at),
+userProfiles[record.created_by] || 'Unknown'
+    ];
+
+    cells.forEach(function(value) {
+
+      const td = document.createElement('td');
+
+      td.textContent = safe(value);
+
+      tr.appendChild(td);
+
+    });
+
+
+    /* ================= EDIT ================= */
+
+    const actionTd = document.createElement('td');
+
+    const editButton = document.createElement('button');
+
+    editButton.type = 'button';
+    editButton.className = 'edit';
+    editButton.textContent = 'Edit';
+
+    editButton.onclick = function() {
+      startEdit(record.bio_id);
+    };
+
+    actionTd.appendChild(editButton);
+
+
+    /* ================= PRINT ================= */
+
+    const printButton = document.createElement('button');
+
+    printButton.type = 'button';
+    printButton.className = 'prt';
+    printButton.textContent = 'Print';
+
+    printButton.onclick = function() {
+      printOne(record.bio_id);
+    };
+
+    actionTd.appendChild(printButton);
+
+
+   /* ================= DELETE ================= */
+
+if (currentUserRole === 'admin') {
+
+  const deleteButton = document.createElement('button');
+
+  deleteButton.type = 'button';
+  deleteButton.className = 'del';
+  deleteButton.textContent = 'Delete';
+
+  deleteButton.onclick = function() {
+    deleteRecord(record.bio_id);
+  };
+
+  actionTd.appendChild(deleteButton);
+}
+
+
+    tr.appendChild(actionTd);
+
+    tbody.appendChild(tr);
+
+  });
+}
+/* =========================================================
+   EDIT / DELETE
+========================================================= */
+/* =========================================================
+   EDIT EMPLOYEE — SUPABASE
+========================================================= */
+async function startEdit(bioId) {
+
+  const key = safe(bioId).trim();
+
+  if (!key) {
+    show('Biostar ID is missing.', 'err');
+    return;
+  }
+
+  const { data: employee, error } =
+    await supabaseClient
+      .from('employees')
+      .select('*')
+      .eq('bio_id', key)
+      .maybeSingle();
+
+  if (error) {
+
+    console.error(
+      'SUPABASE EDIT LOAD FAILED:',
+      error
+    );
+
+    show(
+      'Unable to load employee from database.',
+      'err'
+    );
+
+    return;
+  }
+
+  if (!employee) {
+
+    show(
+      'Record not found in database.',
+      'err'
+    );
+
+    await renderRecords();
+
+    return;
+  }
+
+  const map = {
+
+    bioId: 'bio_id',
+    hcmId: 'hcm_id',
+    fullName: 'full_name',
+    fatherName: 'father_name',
+    oldCnic: 'old_cnic',
+    cnic: 'cnic',
+    cnicIssueDate: 'cnic_issue_date',
+    cnicExpiryDate: 'cnic_expiry_date',
+    dob: 'date_of_birth',
+    gender: 'gender',
+    maritalStatus: 'marital_status',
+    nationality: 'nationality',
+    personalEmail: 'personal_email',
+    professionalEmail: 'professional_email',
+    phone: 'phone',
+    lastQualification: 'last_qualification',
+    educationFrom: 'education_from',
+address: 'present_address',
+temporaryAddress: 'temporary_address',
+
+personalReference: 'reference_1_name',
+    personalReferencePhone: 'reference_1_phone',
+    professionalReference: 'reference_2_name',
+    professionalReferencePhone: 'reference_2_phone',
+    referenceEmail: 'reference_email',
+
+    joinDate: 'joining_date',
+    grade: 'grade',
+    designation: 'designation',
+    department: 'department',
+    category: 'category',
+    salary: 'salary',
+    accountNumber: 'account_no',
+
+    ecName: 'emergency_name',
+    ecRelation: 'emergency_relation',
+    ecPhone: 'emergency_phone'
+
+  };
+
+  getFormFields().forEach(function(el) {
+
+    const field = form.querySelector(
+      '[name="' + el.name + '"]'
+    );
+
+    if (!field) return;
+
+    if (field.type === 'checkbox') {
+
+      field.checked =
+        employee.declaration_agreed === true;
+
+      return;
+    }
+
+    const dbField =
+      map[field.name];
+
+    if (dbField) {
+
+      field.value =
+        safe(employee[dbField]);
+
+    }
+
+  });
+
+  setPhotoPreview(
+    safe(employee.photo_url)
+  );
+
+  editKey =
+    key.toLowerCase();
+
+  submitBtn.textContent =
+    'Update Employee';
+
+  show(
+    'Editing "' +
+    safe(employee.full_name) +
+    '". Make changes, then click Update Employee.',
+    'ok'
+  );
+
+  updateProgress();
+
+  form.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+
+  console.log(
+    'SUPABASE EDIT LOAD SUCCESS:',
+    employee
+  );
+}
+function cancelEdit() {
+  editKey = null;
+  submitBtn.textContent = 'Submit Enrolment';
+  form.reset();
+  resetPhoto();
+  updateProgress();
+  hideMsg();
+}
+
+async function deleteRecord(bioId) {
+
+  const key = safe(bioId).trim();
+
+  if (!key) {
+    show('Biostar ID is missing.', 'err');
+    return;
+  }
+
+  /* ================= FIND EMPLOYEE ================= */
+
+  const { data: employee, error: findError } =
+    await supabaseClient
+      .from('employees')
+      .select('id, bio_id, full_name')
+      .eq('bio_id', key)
+      .maybeSingle();
+
+  if (findError) {
+
+    console.error(
+      'SUPABASE DELETE FIND FAILED:',
+      findError
+    );
+
+    show(
+      'Unable to find employee in database.',
+      'err'
+    );
+
+    return;
+  }
+
+  if (!employee) {
+
+    show(
+      'Record not found in database.',
+      'err'
+    );
+
+    await renderRecords();
+
+    return;
+  }
+
+  /* ================= CONFIRM ================= */
+
+  const name =
+    safe(employee.full_name).trim() ||
+    safe(employee.bio_id).trim() ||
+    'Employee';
+
+  if (
+    !confirm(
+      'Delete employee "' +
+      name +
+      '" permanently?'
+    )
+  ) {
+    return;
+  }
+
+  /* ================= DELETE ================= */
+
+  const { error: deleteError } =
+    await supabaseClient
+      .from('employees')
+      .delete()
+      .eq('id', employee.id);
+
+  if (deleteError) {
+
+    console.error(
+      'SUPABASE DELETE FAILED:',
+      deleteError
+    );
+
+    show(
+      'Employee could not be deleted: ' +
+      (deleteError.message || 'Database error.'),
+      'err'
+    );
+
+    return;
+  }
+
+  /* ================= SUCCESS ================= */
+
+  console.log(
+    'SUPABASE DELETE SUCCESS:',
+    employee
+  );
+
+  if (
+    editKey &&
+    editKey.toLowerCase() === key.toLowerCase()
+  ) {
+    cancelEdit();
+  }
+
+  await renderRecords();
+
+  show(
+    'Deleted: ' +
+    name,
+    'ok'
+  );
+}
+/* =========================================================
+   SUBMIT — SUPABASE INSERT / UPDATE
+========================================================= */
+form.addEventListener('input', updateProgress);
+form.addEventListener('change', updateProgress);
+
+form.addEventListener('submit', async function(e) {
+
+  e.preventDefault();
+
+  /* ================= REQUIRED FIELDS ================= */
+
+  const invalid = getFormFields().filter(function(el) {
+
+    if (!el.required) return false;
+
+    if (el.type === 'checkbox') {
+      return !el.checked;
+    }
+
+    return !String(el.value || '').trim();
+
+  });
+
+  if (invalid.length) {
+
+    show(
+      'Please fill all required fields — ' +
+      invalid.length +
+      ' missing.',
+      'err'
+    );
+
+    invalid[0].focus();
+
+    return;
+  }
+
+
+  /* ================= EMAIL VALIDATION ================= */
+
+  const personalEmail =
+    document.getElementById('personalEmail');
+
+  const professionalEmail =
+    document.getElementById('professionalEmail');
+
+
+  if (
+    personalEmail.value.trim() &&
+    !isEmail(personalEmail.value)
+  ) {
+
+    show(
+      'Personal Email is not valid.',
+      'err'
+    );
+
+    personalEmail.focus();
+
+    return;
+  }
+
+
+  if (
+    professionalEmail.value.trim() &&
+    !isEmail(professionalEmail.value)
+  ) {
+
+    show(
+      'Professional Email is not valid.',
+      'err'
+    );
+
+    professionalEmail.focus();
+
+    return;
+  }
+
+
+  /* ================= CNIC VALIDATION ================= */
+
+  const cnicField =
+    document.getElementById('cnic');
+
+  const cnicValue =
+    normalizeCNIC(cnicField.value);
+
+
+  if (cnicValue.length !== 13) {
+
+    show(
+      'CNIC must contain exactly 13 digits.',
+      'err'
+    );
+
+    cnicField.focus();
+
+    return;
+  }
+
+
+  /* ================= BIO / HCM VALUES ================= */
+
+  const bioField =
+    document.getElementById('bioId');
+
+  const bioValue =
+    bioField.value.trim();
+
+
+  const hcmField =
+    document.getElementById('hcmId');
+
+  const hcmValue =
+    hcmField.value.trim();
+
+
+  /* ================= BUTTON STATE ================= */
+
+  submitBtn.disabled = true;
+
+  submitBtn.textContent =
+    editKey
+      ? 'Checking Database...'
+      : 'Checking Database...';
+
+
+  /* =====================================================
+     EDIT MODE — FIND CURRENT SUPABASE RECORD
+  ===================================================== */
+
+  let existingEmployee = null;
+
+
+  if (editKey) {
+
+    const { data: existingRows, error: existingError } =
+      await supabaseClient
+        .from('employees')
+        .select('id, bio_id, cnic, hcm_id, full_name')
+        .eq('bio_id', editKey)
+        .limit(1);
+
+
+    if (existingError) {
+
+      console.error(
+        'SUPABASE EDIT RECORD CHECK FAILED:',
+        existingError
+      );
+
+      show(
+        'Unable to find the employee being edited.',
+        'err'
+      );
+
+      submitBtn.disabled = false;
+      submitBtn.textContent =
+        'Update Employee';
+
+      return;
+    }
+
+
+    if (!existingRows || !existingRows.length) {
+
+      show(
+        'The employee being edited was not found in database.',
+        'err'
+      );
+
+      submitBtn.disabled = false;
+      submitBtn.textContent =
+        'Submit Enrolment';
+
+      editKey = null;
+
+      return;
+    }
+
+
+    existingEmployee =
+      existingRows[0];
+
+  }
+
+
+  /* ================= DATABASE DUPLICATE CHECK ================= */
+
+  const duplicateConditions = [
+    'cnic.eq.' + cnicValue
+  ];
+
+
+  if (bioValue) {
+
+    duplicateConditions.push(
+      'bio_id.eq.' + bioValue
+    );
+
+  }
+
+
+  if (hcmValue) {
+
+    duplicateConditions.push(
+      'hcm_id.eq.' + hcmValue
+    );
+
+  }
+
+
+  const { data: duplicateRows, error: duplicateError } =
+    await supabaseClient
+      .from('employees')
+      .select('id, cnic, bio_id, hcm_id')
+      .or(duplicateConditions.join(','));
+
+
+  if (duplicateError) {
+
+    console.error(
+      'DUPLICATE CHECK FAILED:',
+      duplicateError
+    );
+
+    show(
+      'Unable to check employee database.',
+      'err'
+    );
+
+    submitBtn.disabled = false;
+
+    submitBtn.textContent =
+      editKey
+        ? 'Update Employee'
+        : 'Submit Enrolment';
+
+    return;
+  }
+
+
+  /* =====================================================
+     IGNORE CURRENT RECORD DURING EDIT
+  ===================================================== */
+
+  const otherDuplicateRows =
+    (duplicateRows || []).filter(function(r) {
+
+      if (!existingEmployee) {
+        return true;
+      }
+
+      return r.id !== existingEmployee.id;
+
+    });
+
+
+  /* ================= DUPLICATE CNIC ================= */
+
+  const duplicateCNIC =
+    otherDuplicateRows.some(function(r) {
+
+      return normalizeCNIC(r.cnic) === cnicValue;
+
+    });
+
+
+  if (duplicateCNIC) {
+
+    show(
+      'CNIC "' +
+      cnicField.value.trim() +
+      '" already exists in database.',
+      'err'
+    );
+
+    cnicField.focus();
+
+    submitBtn.disabled = false;
+
+    submitBtn.textContent =
+      editKey
+        ? 'Update Employee'
+        : 'Submit Enrolment';
+
+    return;
+  }
+
+
+  /* ================= DUPLICATE BIO ================= */
+
+  const duplicateBIO =
+    bioValue &&
+    otherDuplicateRows.some(function(r) {
+
+      return safe(r.bio_id)
+        .trim()
+        .toLowerCase() ===
+        bioValue.toLowerCase();
+
+    });
+
+
+  if (duplicateBIO) {
+
+    show(
+      'Biostar ID "' +
+      bioValue +
+      '" already exists in database.',
+      'err'
+    );
+
+    bioField.focus();
+
+    submitBtn.disabled = false;
+
+    submitBtn.textContent =
+      editKey
+        ? 'Update Employee'
+        : 'Submit Enrolment';
+
+    return;
+  }
+
+
+  /* ================= DUPLICATE HCM ================= */
+
+  const duplicateHCM =
+    hcmValue &&
+    otherDuplicateRows.some(function(r) {
+
+      return safe(r.hcm_id)
+        .trim()
+        .toLowerCase() ===
+        hcmValue.toLowerCase();
+
+    });
+
+
+  if (duplicateHCM) {
+
+    show(
+      'HCM ID "' +
+      hcmValue +
+      '" already exists in database.',
+      'err'
+    );
+
+    hcmField.focus();
+
+    submitBtn.disabled = false;
+
+    submitBtn.textContent =
+      editKey
+        ? 'Update Employee'
+        : 'Submit Enrolment';
+
+    return;
+  }
+
+
+  /* =====================================================
+     SUPABASE RECORD
+  ===================================================== */
+
+  const record = {
+
+    /* Personal Information */
+
+    bio_id:
+      bioValue || null,
+
+    hcm_id:
+      hcmValue || null,
+
+    full_name:
+      document.getElementById('fullName').value.trim(),
+
+    father_name:
+      document.getElementById('fatherName').value.trim(),
+
+    old_cnic:
+      document.getElementById('oldCnic').value.trim() || null,
+
+    cnic:
+      cnicValue,
+
+    cnic_issue_date:
+      document.getElementById('cnicIssueDate').value || null,
+
+    cnic_expiry_date:
+      document.getElementById('cnicExpiryDate').value || null,
+
+    date_of_birth:
+      document.getElementById('dob').value || null,
+
+    gender:
+      document.getElementById('gender').value || null,
+
+    marital_status:
+      document.getElementById('maritalStatus').value || null,
+
+    nationality:
+      document.getElementById('nationality').value.trim() || null,
+
+    personal_email:
+      document.getElementById('personalEmail').value.trim() || null,
+
+    professional_email:
+      document.getElementById('professionalEmail').value.trim() || null,
+
+    phone:
+      document.getElementById('phone').value.trim() || null,
+
+    last_qualification:
+      document.getElementById('lastQualification').value.trim() || null,
+
+    education_from:
+  document.getElementById('educationFrom').value.trim() || null,
+
+present_address:
+  document.getElementById('address').value.trim() || null,
+
+temporary_address:
+  document.getElementById('temporaryAddress').value.trim() || null,
+
+    /* References */
+
+    reference_1_name:
+      document.getElementById('personalReference').value.trim() || null,
+
+    reference_1_phone:
+      document.getElementById('personalReferencePhone').value.trim() || null,
+
+    reference_2_name:
+      document.getElementById('professionalReference').value.trim() || null,
+
+    reference_2_phone:
+      document.getElementById('professionalReferencePhone').value.trim() || null,
+
+    reference_email:
+      document.getElementById('referenceEmail').value.trim() || null,
+
+
+    /* Employment Details */
+
+    joining_date:
+      document.getElementById('joinDate').value || null,
+
+    grade:
+      document.getElementById('grade').value.trim() || null,
+
+    designation:
+      document.getElementById('designation').value.trim() || null,
+
+    department:
+      document.getElementById('department').value.trim() || null,
+
+    category:
+      document.getElementById('category').value.trim() || null,
+
+    salary:
+      document.getElementById('salary').value.trim() || null,
+
+    account_no:
+      document.getElementById('accountNumber').value.trim() || null,
+
+
+    /* Emergency Contact */
+
+    emergency_name:
+      document.getElementById('ecName').value.trim() || null,
+
+    emergency_relation:
+      document.getElementById('ecRelation').value.trim() || null,
+
+    emergency_phone:
+      document.getElementById('ecPhone').value.trim() || null,
+
+
+    /* Declaration */
+
+    declaration_agreed:
+      document.getElementById('agree').checked
+
+  };
+
+
+  /* =====================================================
+     UPDATE EXISTING EMPLOYEE
+  ===================================================== */
+
+  if (existingEmployee) {
+
+    submitBtn.textContent =
+      'Updating...';
+
+
+    const { data, error } =
+      await supabaseClient
+        .from('employees')
+        .update(record)
+        .eq('id', existingEmployee.id)
+        .select()
+        .single();
+
+
+    if (error) {
+
+      console.error(
+        'SUPABASE UPDATE FAILED:',
+        error
+      );
+
+      show(
+        'Employee could not be updated: ' +
+        (error.message || 'Database error.'),
+        'err'
+      );
+
+      submitBtn.disabled = false;
+      submitBtn.textContent =
+        'Update Employee';
+
+      return;
+    }
+
+
+    console.log(
+      'SUPABASE UPDATE SUCCESS:',
+      data
+    );
+
+
+    await renderRecords();
+
+
+    show(
+      'Updated: ' +
+      safe(data.full_name) +
+      '.',
+      'ok'
+    );
+
+
+    form.reset();
+
+    resetPhoto();
+
+    editKey = null;
+
+    submitBtn.disabled = false;
+
+    submitBtn.textContent =
+      'Submit Enrolment';
+
+    updateProgress();
+
+    return;
+  }
+
+
+  /* =====================================================
+     INSERT NEW EMPLOYEE
+  ===================================================== */
+
+  submitBtn.textContent =
+    'Saving...';
+
+
+  const { data, error } =
+    await supabaseClient
+      .from('employees')
+      .insert([record])
+      .select()
+      .single();
+
+
+  if (error) {
+
+    console.error(
+      'SUPABASE SAVE FAILED:',
+      error
+    );
+
+    show(
+      'Employee could not be saved: ' +
+      (error.message || 'Database error.'),
+      'err'
+    );
+
+    submitBtn.disabled = false;
+    submitBtn.textContent =
+      'Submit Enrolment';
+
+    return;
+  }
+
+
+  /* ================= SUCCESS ================= */
+
+  console.log(
+    'SUPABASE SAVE SUCCESS:',
+    data
+  );
+
+
+  await renderRecords();
+
+
+  show(
+    'Saved: ' +
+    safe(data.full_name) +
+    '. Total employees: ' +
+    (await loadFromSupabase()).length +
+    '.',
+    'ok'
+  );
+
+
+  form.reset();
+
+  resetPhoto();
+
+  editKey = null;
+
+  submitBtn.disabled = false;
+
+  submitBtn.textContent =
+    'Submit Enrolment';
+
+  updateProgress();
+
+});
+
+
+document.getElementById('clearBtn').onclick =
+  cancelEdit;
+
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove(
+    'printing-form',
+    'printing-all',
+    'printing-one'
+  );
+});
+
+
+/* =========================================================
+   PRINT — (a) form + table,  (b) single employee sheet
+========================================================= */
+document.getElementById('printFormBtn').onclick = () => {
+  document.body.classList.remove('printing-one', 'printing-all');
+  document.body.classList.add('printing-form');
+  printArea.innerHTML = '';
+  window.print();
+};
+
+document.getElementById('printBtn').onclick = () => {
+  document.body.classList.remove('printing-one', 'printing-form');
+  document.body.classList.add('printing-all');
+  printArea.innerHTML = '';
+  window.print();
+};
+
+async function printOne(bioId) {
+  const key = safe(bioId).trim().toLowerCase();
+
+  /* ================= LOAD FROM SUPABASE ================= */
+
+  const { data: r, error } = await supabaseClient
+    .from('employees')
+    .select('*')
+    .eq('bio_id', key)
+    .maybeSingle();
+
+  if (error) {
+    console.error('SUPABASE PRINT LOAD FAILED:', error);
+    show('Unable to load employee from database.', 'err');
+    return;
+  }
+
+  if (!r) {
+    show('Record not found in database.', 'err');
+    return;
+  }
+
+  /* ================= SUPABASE → PRINT FIELDS ================= */
+
+  const employee = {
+    bioId: r.bio_id,
+    hcmId: r.hcm_id,
+    fullName: r.full_name,
+    fatherName: r.father_name,
+    oldCnic: r.old_cnic,
+    cnic: r.cnic,
+    cnicIssueDate: r.cnic_issue_date,
+    cnicExpiryDate: r.cnic_expiry_date,
+    dob: r.date_of_birth,
+    gender: r.gender,
+    maritalStatus: r.marital_status,
+    nationality: r.nationality,
+    personalEmail: r.personal_email,
+    professionalEmail: r.professional_email,
+    phone: r.phone,
+    lastQualification: r.last_qualification,
+    educationFrom: r.education_from,
+    address: r.present_address,
+    temporaryAddress: r.temporary_address,
+
+    personalReference: r.reference_1_name,
+    personalReferencePhone: r.reference_1_phone,
+    professionalReference: r.reference_2_name,
+    professionalReferencePhone: r.reference_2_phone,
+    referenceEmail: r.reference_email,
+
+    joinDate: r.joining_date,
+    grade: r.grade,
+    designation: r.designation,
+    department: r.department,
+    category: r.category,
+    salary: r.salary,
+    accountNumber: r.account_no,
+
+    ecName: r.emergency_name,
+    ecRelation: r.emergency_relation,
+    ecPhone: r.emergency_phone,
+
+    savedAt: r.created_at,
+    updatedAt: r.updated_at
+  };
+
+  /* ================= PRINT ROW ================= */
+
+  const row = (label, value, cls) =>
+    '<tr><td class="k">' +
+    label +
+    '</td><td' +
+    (cls ? ' class="' + cls + '"' : '') +
+    '>' +
+    safe(value) +
+    '</td></tr>';
+
+  /* ================= BUILD PRINT ================= */
+
+  printArea.innerHTML =
+    '<div class="sheet">' +
+
+      '<div class="sheet-head">' +
+        '<h1>Employee Enrolment Record</h1>' +
+        '<p>Biostar ID: <b>' +
+          safe(employee.bioId) +
+        '</b> &nbsp;|&nbsp; Name: <b>' +
+          getRecordName(employee) +
+        '</b></p>' +
+      '</div>' +
+
+      '<h3>Personal Information</h3>' +
+      '<table>' +
+
+        row('Full Name', employee.fullName) +
+        row('Father Name', employee.fatherName) +
+        row('CNIC / National ID', employee.cnic) +
+        row('Old CNIC', employee.oldCnic) +
+        row('CNIC Issue Date', formatDate(employee.cnicIssueDate)) +
+        row('CNIC Expiry Date', formatDate(employee.cnicExpiryDate)) +
+        row('Date of Birth', formatDate(employee.dob)) +
+        row('Gender', employee.gender) +
+        row('Marital Status', employee.maritalStatus) +
+        row('Nationality', employee.nationality) +
+        row('Phone', employee.phone) +
+        row('Personal Email', employee.personalEmail) +
+        row('Professional Email', employee.professionalEmail) +
+        row('Employee Email (used)', employeeEmail(employee)) +
+        row('Last Qualification', employee.lastQualification) +
+        row('Education From', employee.educationFrom) +
+
+        '<tr>' +
+          '<td class="k">Permanent Address</td>' +
+          '<td>' +
+            safe(employee.address) +
+          '</td>' +
+        '</tr>' +
+
+        '<tr>' +
+          '<td class="k">Temporary Address</td>' +
+          '<td>' +
+            safe(employee.temporaryAddress) +
+          '</td>' +
+        '</tr>' +
+
+      '</table>' +
+
+      '<h3>Employment Details</h3>' +
+      '<table>' +
+
+        row('Biostar ID', employee.bioId) +
+        row('HCM ID', employee.hcmId) +
+        row('Designation', employee.designation) +
+        row('Department', employee.department) +
+        row('Grade', employee.grade) +
+        row('Category', employee.category) +
+        row('Joining Date', formatDate(employee.joinDate)) +
+        row('Monthly Salary', employee.salary) +
+        row('Account Number', employee.accountNumber) +
+
+      '</table>' +
+
+      '<h3>References</h3>' +
+      '<table>' +
+
+        row('Personal Reference', employee.personalReference) +
+        row('Personal Reference Phone', employee.personalReferencePhone) +
+        row('Professional Reference', employee.professionalReference) +
+        row('Professional Reference Phone', employee.professionalReferencePhone) +
+        row('Reference Email', employee.referenceEmail) +
+
+      '</table>' +
+
+      '<h3>Emergency Contact</h3>' +
+      '<table>' +
+
+        row('Contact Name', employee.ecName) +
+        row('Relationship', employee.ecRelation) +
+        row('Contact Phone', employee.ecPhone) +
+
+      '</table>' +
+
+      '<div class="sheet-note">' +
+        'Record saved: ' +
+        formatTime(employee.savedAt) +
+
+        (employee.updatedAt
+          ? ' &nbsp;|&nbsp; Last updated: ' +
+            formatTime(employee.updatedAt)
+          : '') +
+
+        ' &nbsp;|&nbsp; Printed: ' +
+        formatTime(new Date().toISOString()) +
+
+      '</div>' +
+
+      '<div class="sheet-foot">' +
+        '<div>Employee Signature</div>' +
+        '<div>Authorised Signature</div>' +
+      '</div>' +
+
+    '</div>';
+
+  /* ================= PRINT ================= */
+
+  document.body.classList.add('printing-one');
+
+  window.print();
+}
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing-one');
+  printArea.innerHTML = '';
+});
+
+/* =========================================================
+   BACKUP — SUPABASE
+========================================================= */
+
+document.getElementById('backupBtn').onclick = async function() {
+/* ================= ADMIN SECURITY ================= */
+
+  if (currentUserRole !== 'admin') {
+
+    show(
+      'Only Admin can create a backup.',
+      'err'
+    );
+
+    return;
+  }
+  /* ================= CHECK DATABASE ================= */
+
+  const { data: employees, error: loadError } =
+    await supabaseClient
+      .from('employees')
+      .select('id');
+
+  if (loadError) {
+
+    console.error(
+      'SUPABASE BACKUP CHECK FAILED:',
+      loadError
+    );
+
+    show(
+      'Unable to check employee database.',
+      'err'
+    );
+
+    return;
+  }
+
+  if (!employees || !employees.length) {
+
+    show(
+      'No records available to back up.',
+      'err'
+    );
+
+    return;
+  }
+
+  /* ================= CREATE BACKUP ================= */
+
+  const { data: backupId, error: backupError } =
+    await supabaseClient
+      .rpc('create_employee_backup');
+
+  if (backupError) {
+
+    console.error(
+      'SUPABASE BACKUP FAILED:',
+      backupError
+    );
+
+    show(
+      'Backup could not be created: ' +
+      (backupError.message || 'Database error.'),
+      'err'
+    );
+
+    return;
+  }
+
+  /* ================= SUCCESS ================= */
+
+  console.log(
+    'SUPABASE BACKUP SUCCESS:',
+    backupId
+  );
+
+  show(
+    'Backup created successfully. ' +
+    employees.length +
+    ' records saved.',
+    'ok'
+  );
+};
+
+/* =========================================================
+   RESTORE — SUPABASE
+========================================================= */
+
+document.getElementById('restoreBtn').onclick = async function() {
+
+  /* ================= CHECK ADMIN ================= */
+
+  if (currentUserRole !== 'admin') {
+
+    show(
+      'Only Admin can restore a backup.',
+      'err'
+    );
+
+    return;
+  }
+
+  /* ================= GET LATEST BACKUP ================= */
+
+  const { data: backups, error: backupLoadError } =
+    await supabaseClient
+      .from('employee_backups')
+      .select('id, record_count, created_at')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+  if (backupLoadError) {
+
+    console.error(
+      'SUPABASE BACKUP LOAD FAILED:',
+      backupLoadError
+    );
+
+    show(
+      'Unable to load backup list.',
+      'err'
+    );
+
+    return;
+  }
+
+  if (!backups || !backups.length) {
+
+    show(
+      'No backup available.',
+      'err'
+    );
+
+    return;
+  }
+
+  const backup = backups[0];
+
+  /* ================= CONFIRM ================= */
+
+  const backupDate =
+    backup.created_at
+      ? new Date(backup.created_at).toLocaleString()
+      : 'Unknown date';
+
+  if (
+    !confirm(
+      'Restore the latest backup?\n\n' +
+      'Backup date: ' +
+      backupDate +
+      '\n' +
+      'Records: ' +
+      backup.record_count +
+      '\n\n' +
+      'Current employee records will be replaced.'
+    )
+  ) {
+    return;
+  }
+
+  /* ================= RESTORE ================= */
+
+  const { data: restoredCount, error: restoreError } =
+    await supabaseClient
+      .rpc(
+        'restore_employee_backup',
+        {
+          p_backup_id: backup.id
+        }
+      );
+
+  if (restoreError) {
+
+    console.error(
+      'SUPABASE RESTORE FAILED:',
+      restoreError
+    );
+
+    show(
+      'Restore failed: ' +
+      (restoreError.message || 'Database error.'),
+      'err'
+    );
+
+    return;
+  }
+
+  /* ================= SUCCESS ================= */
+
+  console.log(
+    'SUPABASE RESTORE SUCCESS:',
+    restoredCount,
+    'records restored'
+  );
+
+  editKey = null;
+
+  submitBtn.textContent =
+    'Submit Enrolment';
+
+  form.reset();
+
+  resetPhoto();
+
+  await renderRecords();
+
+  show(
+    'Backup restored successfully. ' +
+    restoredCount +
+    ' records restored.',
+    'ok'
+  );
+};
+
+/* =========================================================
+   EXPORT
+========================================================= */
+async function rowsForExport() {
+
+  const { data: rows, error } =
+    await supabaseClient
+      .from('employees')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+  if (error) {
+
+    console.error(
+      'SUPABASE EXPORT LOAD FAILED:',
+      error
+    );
+
+    show(
+      'Unable to load employee records from database.',
+      'err'
+    );
+
+    return null;
+  }
+
+  if (!rows || !rows.length) {
+
+    show(
+      'No records saved yet.',
+      'err'
+    );
+
+    return null;
+  }
+
+  return rows.map(function(r) {
+
+    return {
+
+      bioId: r.bio_id,
+      hcmId: r.hcm_id,
+      fullName: r.full_name,
+      fatherName: r.father_name,
+
+      designation: r.designation,
+      department: r.department,
+      grade: r.grade,
+
+      joinDate: r.joining_date,
+      dob: r.date_of_birth,
+
+      gender: r.gender,
+      maritalStatus: r.marital_status,
+      nationality: r.nationality,
+
+      cnic: r.cnic,
+      oldCnic: r.old_cnic,
+      cnicIssueDate: r.cnic_issue_date,
+      cnicExpiryDate: r.cnic_expiry_date,
+
+      lastQualification: r.last_qualification,
+      educationFrom: r.education_from,
+
+      category: r.category,
+      salary: r.salary,
+      accountNumber: r.account_no,
+
+      personalEmail: r.personal_email,
+      professionalEmail: r.professional_email,
+      phone: r.phone,
+
+      address: r.present_address,
+      temporaryAddress: r.temporary_address,
+
+      personalReference: r.reference_1_name,
+      personalReferencePhone: r.reference_1_phone,
+
+      professionalReference: r.reference_2_name,
+      professionalReferencePhone: r.reference_2_phone,
+
+      referenceEmail: r.reference_email,
+
+      ecName: r.emergency_name,
+      ecRelation: r.emergency_relation,
+      ecPhone: r.emergency_phone,
+
+      savedAt: r.created_at,
+      updatedAt: r.updated_at
+
+    };
+
+  });
+}
+function valueFor(record, field) {
+  if (field === 'employeeEmail') return employeeEmail(record);
+  if (field === 'savedAt' || field === 'updatedAt') return formatTime(record[field]);
+  if (['joinDate','dob','cnicIssueDate','cnicExpiryDate'].includes(field)) return formatDate(record[field]);
+  return safe(record[field]);
+}
+function stamp() { return new Date().toISOString().slice(0, 10); }
+function download(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ---------- CSV ---------- */
+document.getElementById('csvBtn').onclick = async () => {
+
+  const all = await rowsForExport();
+
+  if (!all) return;
+
+  const esc = v =>
+    '"' + String(v ?? '').replace(/"/g, '""') + '"';
+
+  const lines = [
+    COLS.map(c => esc(c[1])).join(',')
+  ];
+
+  all.forEach(r => {
+    lines.push(
+      COLS.map(c => esc(valueFor(r, c[0]))).join(',')
+    );
+  });
+
+  download(
+    new Blob(
+      ['\uFEFF' + lines.join('\r\n')],
+      { type: 'text/csv;charset=utf-8;' }
+    ),
+    'employee_enrolments_' + stamp() + '.csv'
+  );
+
+  show(
+    'CSV exported: ' + all.length + ' records.',
+    'ok'
+  );
+};
+
+/* ---------- XLSX : offline-first, CDN fallback ---------- */
+function loadSheetJS() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+
+  /* 1) pehle local file try karo (xlsx.full.min.js, HTML ke saath same folder) */
+  return new Promise((resolve) => {
+    const local = document.createElement('script');
+    local.src = 'xlsx.full.min.js';
+    local.onload = () => window.XLSX ? resolve(window.XLSX) : tryCdn(resolve);
+    local.onerror = () => tryCdn(resolve);
+    document.head.appendChild(local);
+  });
+}
+function tryCdn(resolve) {
+  const cdn = document.createElement('script');
+  cdn.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  cdn.onload = () => resolve(window.XLSX || null);
+  cdn.onerror = () => resolve(null);
+  document.head.appendChild(cdn);
+}
+
+function buildXlsHtml(all) {
+  const esc = v => safe(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const head = '<tr>' + COLS.map(c =>
+    '<th style="background:#2f4bd6;color:#fff;border:1px solid #999;">' + esc(c[1]) + '</th>').join('') + '</tr>';
+  const body = all.map(r => '<tr>' + COLS.map(c =>
+    '<td style="border:1px solid #ccc;">' + esc(valueFor(r, c[0])) + '</td>').join('') + '</tr>').join('');
+  return '<html xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="[w3.org](http://www.w3.org/TR/REC-html40)">' +
+    '<head><meta charset="UTF-8"></head><body>' +
+    '<table border="1" cellspacing="0" cellpadding="4">' + head + body + '</table>' +
+    '</body></html>';
+}
+
+document.getElementById('xlsxBtn').onclick = async () => {
+  const all = await rowsForExport(); if (!all) return;
+  const btn = document.getElementById('xlsxBtn');
+  const original = btn.textContent;
+  btn.textContent = 'Preparing...';
+  btn.disabled = true;
+
+  try {
+    const XLSX = await loadSheetJS();
+
+    if (XLSX) {
+      /* ---- proper .xlsx ---- */
+      const header = COLS.map(c => c[1]);
+      const rows = all.map(r => COLS.map(c => valueFor(r, c[0])));
+      const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+      ws['!cols'] = COLS.map((c, i) => {
+        const longest = Math.max(String(c[1]).length,
+          ...rows.map(r => String(r[i] ?? '').length));
+        return { wch: Math.min(Math.max(longest + 2, 12), 42) };
+      });
+      ws['!autofilter'] = {
+        ref: XLSX.utils.encode_range({
+          s: { r: 0, c: 0 }, e: { r: rows.length, c: header.length - 1 }
+        })
+      };
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Employees');
+      XLSX.writeFile(wb, 'employee_enrolments_' + stamp() + '.xlsx');
+      show('Excel exported (.xlsx): ' + all.length + ' records.', 'ok');
+    } else {
+      /* ---- offline fallback: .xls jo Excel theek kholta hai ---- */
+      download(
+        new Blob(['\uFEFF' + buildXlsHtml(all)], { type: 'application/vnd.ms-excel;charset=utf-8;' }),
+        'employee_enrolments_' + stamp() + '.xls'
+      );
+      show('Internet nahi mila — Excel (.xls) file export ho gayi. Ye bhi Excel mein khulti hai.', 'ok');
+    }
+  } catch (err) {
+    console.error(err);
+    download(
+      new Blob(['\uFEFF' + buildXlsHtml(all)], { type: 'application/vnd.ms-excel;charset=utf-8;' }),
+      'employee_enrolments_' + stamp() + '.xls'
+    );
+    show('Excel (.xls) export ho gayi — fallback use hua.', 'ok');
+  } finally {
+    btn.textContent = original;
+    btn.disabled = false;
+  }
+};
+
+/* ---------- JSON ---------- */
+document.getElementById('jsonBtn').onclick = async () => {
+
+  const all = await rowsForExport();
+
+  if (!all) return;
+
+  download(
+    new Blob(
+      [JSON.stringify(all, null, 2)],
+      { type: 'application/json;charset=utf-8;' }
+    ),
+    'employee_enrolments_' + stamp() + '.json'
+  );
+
+  show(
+    'JSON exported — backend import ke liye.',
+    'ok'
+  );
+};
+/* ---------- DELETE ALL — SUPABASE ---------- */
+document.getElementById('wipeBtn').onclick = async function() {
+/* ================= ADMIN SECURITY ================= */
+
+  if (currentUserRole !== 'admin') {
+
+  alert('Only Admin can delete all employee records.');
+
+  return;
+}
+  /* ================= CHECK DATABASE ================= */
+
+  const { data: employees, error: loadError } =
+    await supabaseClient
+      .from('employees')
+      .select('id, full_name');
+
+  if (loadError) {
+
+    console.error(
+      'SUPABASE DELETE ALL LOAD FAILED:',
+      loadError
+    );
+
+    show(
+      'Unable to check employee database.',
+      'err'
+    );
+
+    return;
+  }
+
+  if (!employees || !employees.length) {
+
+    show(
+      'No records to delete.',
+      'err'
+    );
+
+    return;
+  }
+
+  /* ================= CONFIRM ================= */
+
+  if (
+    !confirm(
+      'Delete ALL ' +
+      employees.length +
+      ' employee records permanently? This cannot be undone.'
+    )
+  ) {
+    return;
+  }
+
+  /* ================= DELETE ALL ================= */
+
+  const { error: deleteError } =
+    await supabaseClient
+      .from('employees')
+      .delete()
+      .not('id', 'is', null);
+
+  if (deleteError) {
+
+    console.error(
+      'SUPABASE DELETE ALL FAILED:',
+      deleteError
+    );
+
+    show(
+      'Records could not be deleted: ' +
+      (deleteError.message || 'Database error.'),
+      'err'
+    );
+
+    return;
+  }
+
+  /* ================= SUCCESS ================= */
+
+  console.log(
+    'SUPABASE DELETE ALL SUCCESS:',
+    employees.length,
+    'records deleted'
+  );
+
+  editKey = null;
+
+  submitBtn.textContent =
+    'Submit Enrolment';
+
+  form.reset();
+
+  resetPhoto();
+
+  await renderRecords();
+
+  show(
+    'All ' +
+    employees.length +
+    ' records deleted from Supabase.',
+    'ok'
+  );
+};
+/* ---------- INIT ---------- */
+updateProgress();
+renderRecords();
+</script>
+</body>
+</html>
