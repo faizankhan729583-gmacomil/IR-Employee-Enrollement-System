@@ -2308,10 +2308,6 @@ async function loginUser() {
 currentUser = data.user;
 currentUserRole = profile.role;
 
-/* ================= REFRESH TABLE AFTER LOGIN ================= */
-
-await renderRecords();
-
 loginScreen.style.display = 'none';
 showDashboardAfterLogin();
 
@@ -2760,11 +2756,6 @@ if (profileError || !profile) {
 
 currentUser = data.session.user;
 currentUserRole = profile.role;
-
-/* ================= REFRESH TABLE AFTER SESSION LOAD ================= */
-
-await renderRecords();
-
 
 console.log(
     'SESSION USER ROLE:',
@@ -3688,8 +3679,14 @@ function updateProgress() {
 ========================================================= */
 async function renderRecords() {
 
-  const all = await loadFromSupabase();
-const userProfiles = await loadUserProfiles();	
+  /* login ke baghair records load na karo */
+  if (!currentUser) return;
+
+  const [all, userProfiles] = await Promise.all([
+    loadFromSupabase(),
+    loadUserProfiles()
+  ]);
+
   countEl.textContent = all.length;
   tbody.innerHTML = '';
 
@@ -5414,7 +5411,6 @@ document.getElementById('wipeBtn').onclick = async function() {
 };
 /* ---------- INIT ---------- */
 updateProgress();
-renderRecords();
 </script>
 </body>
 </html>
