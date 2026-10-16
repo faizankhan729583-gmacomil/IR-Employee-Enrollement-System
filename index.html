@@ -1202,6 +1202,111 @@ body {
     height: 45px;
   }
 }
+/* =========================================================
+   PRINT QUALITY UPGRADE - bigger, bolder, darker text
+   (sirf print par asar, screen par nahi)
+========================================================= */
+@media print {
+
+  body.printing-form,
+  body.printing-form * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Title */
+  body.printing-form #formCard > h1 {
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    color: #0b2447 !important;
+  }
+
+  body.printing-form #formCard > h1::after {
+    font-size: 8.5px !important;
+    font-weight: 800 !important;
+    color: #333 !important;
+  }
+
+  /* Section headings */
+  body.printing-form #enrolForm legend {
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    color: #0b2447 !important;
+    letter-spacing: .5px !important;
+  }
+
+  /* Labels */
+  body.printing-form #enrolForm label {
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    color: #000 !important;
+  }
+
+  /* Filled-in values (sab se important) */
+  body.printing-form #enrolForm input,
+  body.printing-form #enrolForm select,
+  body.printing-form #enrolForm textarea {
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+    border: 1px solid #555 !important;
+    -webkit-text-fill-color: #000 !important;
+    opacity: 1 !important;
+  }
+
+  /* Boxes thore bade taake bade text ke liye jagah ho */
+  body.printing-form #enrolForm input,
+  body.printing-form #enrolForm select {
+    height: 7.8mm !important;
+    min-height: 7.8mm !important;
+  }
+
+  body.printing-form #enrolForm textarea {
+    height: 13mm !important;
+    min-height: 13mm !important;
+  }
+
+  /* Declaration */
+  body.printing-form #enrolForm .check {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+  }
+
+  /* Photo box */
+  body.printing-form .photo-panel-title {
+    font-size: 9.5px !important;
+    font-weight: 800 !important;
+    color: #000 !important;
+  }
+
+  /* Signatures */
+  body.printing-form .print-signatures div {
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    color: #000 !important;
+  }
+
+  body.printing-form .print-signatures span {
+    height: 8mm !important;
+    border-bottom: 1.5px solid #000 !important;
+  }
+}
+#toast {
+  display: none;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  max-width: 340px;
+  padding: 13px 18px;
+  border-radius: 9px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+@media print { #toast { display: none !important; } }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- ===== NAVY + GOLD THEME + TAB LOGO ===== -->
@@ -1677,13 +1782,23 @@ body {
     <div class="notification-panel-header">
         <strong>Notifications</strong>
 
-        <button
-            type="button"
-            id="closeNotificationsBtn"
-            onclick="toggleNotifications()"
-        >
-            ×
-        </button>
+        <div>
+            <button
+                type="button"
+                class="edit"
+                onclick="markAllNotificationsRead()"
+            >
+                Mark all read
+            </button>
+
+            <button
+                type="button"
+                id="closeNotificationsBtn"
+                onclick="toggleNotifications()"
+            >
+                ×
+            </button>
+        </div>
     </div>
 
     <div id="notificationList">
@@ -1748,7 +1863,7 @@ body {
             >
                 New Employee
             </button>
-
+<button type="button" class="btn secondary" onclick="showDashboard()">← Dashboard</button>
         </div>
 
     </div>
@@ -2013,6 +2128,7 @@ body {
     <div class="actions">
       <button type="submit" class="primary" id="submitBtn">Submit Enrolment</button>
       <button type="button" class="ghost" id="clearBtn">Clear Form</button>
+<button type="button" class="ghost" onclick="showDashboard()">← Dashboard</button>
     </div>
 
     <div class="msg" id="msg"></div>
@@ -2041,6 +2157,7 @@ body {
   </div>
 
   <div class="toolbar">
+<button type="button" class="ghost" onclick="showDashboard()">← Dashboard</button>
     <button type="button" class="green" id="xlsxBtn">Export to Excel (.xlsx)</button>
     <button type="button" class="ghost" id="csvBtn">Export to CSV</button>
     <button type="button" class="ghost" id="printFormBtn">Print Form (A4)</button>
@@ -2051,7 +2168,16 @@ body {
     <button type="button" class="ghost" id="wipeBtn">Delete All Records</button>
   </div>
 </div>
+<!-- ================= EMPLOYEE STATISTICS ================= -->
+<div class="card" id="statsCard" style="display:none;">
+  <div class="top">
+    <h2>Employee Statistics</h2>
+    <button type="button" class="ghost" onclick="showDashboard()">← Dashboard</button>
+  </div>
+ <div id="statsBody"></div>
+</div>
 
+<div id="toast"></div>
 <!-- ================= PRINT AREA (single employee sheet) ================= -->
 <div id="printArea"></div>
 
@@ -2215,12 +2341,22 @@ document.getElementById('mainDashboard').style.display = 'none';
 document.getElementById('cnicGate').style.display = 'none';
     document.getElementById('formCard').style.display = 'none';
     document.getElementById('recordsCard').style.display = 'none';
-}
+    document.getElementById('statsCard').style.display = 'none';
 
     loginEmail.value = '';
     loginPassword.value = '';
-
     loginMsg.textContent = '';
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Login';
+
+    if (notificationChannel) {
+        supabaseClient.removeChannel(notificationChannel);
+        notificationChannel = null;
+    }
+
+    currentUser = null;
+    currentUserRole = null;
+}
 
 loginBtn.addEventListener('click', loginUser);
 console.log('LOGIN BUTTON LISTENER READY');
@@ -2254,7 +2390,8 @@ function showDashboard() {
   if (gate) gate.style.display = 'none';
   if (formCard) formCard.style.display = 'none';
   if (recordsCard) recordsCard.style.display = 'none';
-
+const statsCard = document.getElementById('statsCard');
+  if (statsCard) statsCard.style.display = 'none';
   updateDashboardUser();
 
   loadDashboardStats();
@@ -2387,13 +2524,18 @@ function openDashboardModule(module) {
   }
 
 
-  if (module === 'statistics') {
+   if (module === 'statistics') {
 
-    alert(
-      'Employee Statistics module will be added in the next step.'
-    );
+    const stats = document.getElementById('statsCard');
 
-    showDashboard();
+    if (stats) stats.style.display = 'block';
+
+    renderStatistics();
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
 
     return;
   }
@@ -2414,7 +2556,90 @@ function openDashboardModule(module) {
   }
 
 }
+function countBy(rows, key) {
+  const m = {};
+  rows.forEach(function(r) {
+    const v = safe(r[key]).trim() || 'Not set';
+    m[v] = (m[v] || 0) + 1;
+  });
+  return Object.entries(m).sort(function(a, b) { return b[1] - a[1]; });
+}
 
+function statsTable(title, entries, total) {
+
+  let html =
+    '<h3 style="margin:24px 0 8px;font-size:15px;">' +
+    escapeHtml(title) + '</h3>' +
+    '<div class="tablewrap"><table><thead><tr>' +
+    '<th>Name</th><th>Employees</th><th>%</th>' +
+    '<th style="width:40%"></th></tr></thead><tbody>';
+
+  entries.forEach(function(e) {
+
+    const pct = total ? Math.round(e[1] / total * 100) : 0;
+
+    html +=
+      '<tr><td>' + escapeHtml(e[0]) + '</td>' +
+      '<td>' + e[1] + '</td>' +
+      '<td>' + pct + '%</td>' +
+      '<td><div style="background:#e4e8ef;border-radius:4px;height:8px;">' +
+      '<div style="width:' + pct + '%;height:8px;background:#ef9f27;border-radius:4px;"></div>' +
+      '</div></td></tr>';
+  });
+
+  return html + '</tbody></table></div>';
+}
+
+async function renderStatistics() {
+
+  const body = document.getElementById('statsBody');
+  if (!body) return;
+
+  body.innerHTML = '<div class="empty">Loading...</div>';
+
+  const all = await loadFromSupabase();
+
+  if (!all.length) {
+    body.innerHTML = '<div class="empty">No employee records yet.</div>';
+    return;
+  }
+
+  const total = all.length;
+  const year = String(new Date().getFullYear());
+
+  const joinedThisYear = all.filter(function(r) {
+    return safe(r.joining_date).slice(0, 4) === year;
+  }).length;
+
+  const byDept = countBy(all, 'department');
+
+  const cards =
+    '<div class="dashboard-stats">' +
+
+      '<div class="dashboard-stat">' +
+        '<div class="dashboard-stat-label">Total Employees</div>' +
+        '<div class="dashboard-stat-value">' + total + '</div>' +
+      '</div>' +
+
+      '<div class="dashboard-stat">' +
+        '<div class="dashboard-stat-label">Joined in ' + year + '</div>' +
+        '<div class="dashboard-stat-value">' + joinedThisYear + '</div>' +
+      '</div>' +
+
+      '<div class="dashboard-stat">' +
+        '<div class="dashboard-stat-label">Departments</div>' +
+        '<div class="dashboard-stat-value">' + byDept.length + '</div>' +
+      '</div>' +
+
+    '</div>';
+
+  body.innerHTML =
+    cards +
+    statsTable('By Department', byDept, total) +
+    statsTable('By Category', countBy(all, 'category'), total) +
+    statsTable('By Gender', countBy(all, 'gender'), total) +
+    statsTable('By Marital Status', countBy(all, 'marital_status'), total);
+}
 
 function dashboardAction(buttonId) {
 
@@ -2444,7 +2669,39 @@ function dashboardAction(buttonId) {
 
   button.click();
 }
+function applyRoleUI() {
 
+  const isAdmin = currentUserRole === 'admin';
+
+  /* Backup / Restore cards: sirf admin ko dikhao */
+  document.querySelectorAll('.admin-dashboard-item')
+    .forEach(function(el) {
+      el.style.display = isAdmin ? '' : 'none';
+    });
+
+  /* Notifications button: sirf admin ko */
+  const notifBtn = document.getElementById('notificationBtn');
+  if (notifBtn) {
+    notifBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+  }
+
+  const notifPanel = document.getElementById('notificationPanel');
+  if (notifPanel && !isAdmin) {
+    notifPanel.style.display = 'none';
+  }
+
+  /* Records screen ke admin-only buttons */
+  ['wipeBtn', 'backupBtn', 'restoreBtn'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? '' : 'none';
+  });
+
+  /* Admin ke liye realtime notifications start karo */
+  if (isAdmin) {
+    startNotificationRealtime();
+    renderAdminNotifications();
+  }
+}
 
 function showDashboardAfterLogin() {
 
@@ -2508,10 +2765,6 @@ currentUserRole = profile.role;
 
 await renderRecords();
 
-if (currentUserRole === 'admin') {
-    startNotificationRealtime();
-    renderAdminNotifications();
-}
 
 console.log(
     'SESSION USER ROLE:',
@@ -2555,7 +2808,7 @@ const COLS = [
   ['lastQualification','Last Qualification'],['educationFrom','Education From'],
   ['category','Category'],['salary','Monthly Salary'],['accountNumber','Account Number'],
   ['employeeEmail','Employee Email'],['personalEmail','Personal Email'],
-  ['professionalEmail','Professional Email'],['phone','Phone'],['address','Address'],
+  ['professionalEmail','Professional Email'],['phone','Phone'],['address','Permanent Address'],['temporaryAddress','Temporary Address'],
   ['personalReference','Personal Reference'],['personalReferencePhone','Personal Reference Phone'],
   ['professionalReference','Professional Reference'],['professionalReferencePhone','Professional Reference Phone'],
   ['referenceEmail','Reference Email'],['ecName','Emergency Contact'],
@@ -2718,21 +2971,71 @@ async function renderAdminNotifications() {
         : '';
 
     item.innerHTML =
-      '<div class="notification-message">' +
-        safe(notification.message) +
-      '</div>' +
+  '<div class="notification-message">' +
+    escapeHtml(notification.message) +
+  '</div>' +
 
-      '<div class="notification-meta">' +
-        safe(createdBy) +
-        ' • ' +
-        safe(time) +
-      '</div>';
+  '<div class="notification-meta">' +
+    escapeHtml(createdBy) +
+    ' • ' +
+    escapeHtml(time) +
+  '</div>';
+    const readBtn = document.createElement('button');
+
+    readBtn.type = 'button';
+    readBtn.className = 'edit';
+    readBtn.textContent = '✓ Mark read';
+
+    readBtn.onclick = function() {
+      markNotificationRead(notification.id);
+    };
+
+    item.appendChild(readBtn);
 
     list.appendChild(item);
 
   });
 }
 
+async function markNotificationRead(id) {
+
+  const { data, error } =
+    await supabaseClient
+      .from('employee_notifications')
+      .update({ is_read: true })
+      .eq('id', id)
+      .select('id');
+
+  if (error || !data || !data.length) {
+    console.error('MARK READ FAILED:', error);
+    alert('Notification could not be marked as read.');
+    return;
+  }
+
+  renderAdminNotifications();
+}
+
+async function markAllNotificationsRead() {
+
+  if (currentUserRole !== 'admin') return;
+
+  const { data, error } =
+    await supabaseClient
+      .from('employee_notifications')
+      .update({ is_read: true })
+      .eq('is_read', false)
+      .select('id');
+
+  if (error) {
+    console.error('MARK ALL READ FAILED:', error);
+    alert('Notifications could not be marked as read.');
+    return;
+  }
+
+  console.log('NOTIFICATIONS MARKED READ:', data ? data.length : 0);
+
+  renderAdminNotifications();
+}
 
 /* =========================================================
    TOGGLE NOTIFICATIONS
@@ -2768,13 +3071,20 @@ function toggleNotifications() {
    REAL-TIME ADMIN NOTIFICATIONS
 ========================================================= */
 
+let notificationChannel = null;
+
 function startNotificationRealtime() {
 
   if (currentUserRole !== 'admin') {
     return;
   }
 
-  supabaseClient
+  if (notificationChannel) {
+    supabaseClient.removeChannel(notificationChannel);
+    notificationChannel = null;
+  }
+
+  notificationChannel = supabaseClient
     .channel('admin-employee-notifications')
     .on(
       'postgres_changes',
@@ -2839,16 +3149,58 @@ function loadLastBackup() {
    HELPERS
 ========================================================= */
 function safe(v) { return (v === undefined || v === null) ? '' : String(v); }
+function escapeHtml(v) {
+  return safe(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 function isEmail(v) { return /^\S+@\S+\.\S+$/.test(String(v || '').trim()); }
 /* =========================================================
    EMPLOYEE PHOTO
 ========================================================= */
 
 let photoData = '';
+let photoFile = null;
+let photoPath = '';
+const PHOTO_BUCKET = 'employee-photos';
+
+function compressImage(file) {
+  return new Promise(function(resolve) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const max = 600;
+        let w = img.width, h = img.height;
+        if (w > h && w > max) { h = h * max / w; w = max; }
+        else if (h >= w && h > max) { w = w * max / h; h = max; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function(blob) { resolve(blob); }, 'image/jpeg', 0.85);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function getPhotoUrl(path) {
+  if (!path) return '';
+  const { data, error } = await supabaseClient
+    .storage.from(PHOTO_BUCKET).createSignedUrl(path, 3600);
+  if (error) { console.error('PHOTO URL FAILED:', error); return ''; }
+  return data.signedUrl;
+}
 
 function resetPhoto() {
 
   photoData = '';
+  photoFile = null;
+  photoPath = '';
 
   const input = document.getElementById('photoInput');
   const img = document.getElementById('photoPreview');
@@ -2905,32 +3257,19 @@ if (removePhotoBtn) {
 
 if (photoInput) {
 
-  photoInput.addEventListener('change', function() {
+  photoInput.addEventListener('change', async function() {
 
     const file = this.files && this.files[0];
-
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-
       show('Please select an image file.', 'err');
-
       resetPhoto();
-
       return;
     }
 
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-
-      photoData = e.target.result;
-
-      setPhotoPreview(photoData);
-
-    };
-
-    reader.readAsDataURL(file);
+    photoFile = await compressImage(file);
+    setPhotoPreview(URL.createObjectURL(photoFile));
 
   });
 
@@ -3091,9 +3430,14 @@ personalReference: 'reference_1_name',
 
   });
 
-  setPhotoPreview(
-    safe(employee.photo_url)
-  );
+  photoFile = null;
+  photoPath = safe(employee.photo_url);
+
+  if (photoPath) {
+    getPhotoUrl(photoPath).then(setPhotoPreview);
+  } else {
+    resetPhoto();
+  }
 }
 
 async function startNewEmployee() {
@@ -3127,7 +3471,7 @@ async function startNewEmployee() {
 
     loadEmployeeIntoForm(existing);
 
-    editKey = uniqueKey(existing);
+    editKey = existing.id;
 
     submitBtn.textContent = 'Update Employee';
 
@@ -3194,7 +3538,7 @@ async function searchEmployeeByCNIC() {
 
     loadEmployeeIntoForm(employee);
 
-    editKey = uniqueKey(employee);
+    editKey = employee.id;
 
     submitBtn.textContent = 'Update Employee';
 
@@ -3307,7 +3651,28 @@ function getFormFields() {
     .filter(el => el.type !== 'checkbox' || el.id === 'agree');
 }
 
-function show(text, kind) { msg.textContent = text; msg.className = 'msg ' + kind; }
+let toastTimer = null;
+
+function showToast(text, kind) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = text;
+  t.style.background = kind === 'err' ? '#a3212f' : '#14663c';
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.style.display = 'none'; }, 4000);
+}
+
+function show(text, kind) {
+  msg.textContent = text;
+  msg.className = 'msg ' + kind;
+
+  /* agar form nazar nahi aa raha to toast dikhao */
+  const fc = document.getElementById('formCard');
+  if (!fc || fc.offsetParent === null) {
+    showToast(text, kind);
+  }
+}
 function hideMsg() { msg.className = 'msg'; msg.textContent = ''; }
 
 function updateProgress() {
@@ -3330,7 +3695,7 @@ const userProfiles = await loadUserProfiles();
 
   if (!all.length) {
     tbody.innerHTML =
-      '<tr><td class="empty" colspan="18">No records yet. Submit the form to add the first employee.</td></tr>';
+      '<tr><td class="empty" colspan="19">No records yet. Submit the form to add the first employee.</td></tr>';
     return;
   }
 
@@ -3545,12 +3910,20 @@ personalReference: 'reference_1_name',
 
   });
 
-  setPhotoPreview(
-    safe(employee.photo_url)
-  );
+  photoFile = null;
+  photoPath = safe(employee.photo_url);
 
-  editKey =
-    key.toLowerCase();
+  if (photoPath) {
+    getPhotoUrl(photoPath).then(setPhotoPreview);
+  } else {
+    resetPhoto();
+  }
+
+  editKey = employee.id;
+
+  /* records screen chhupao aur form dikhao */
+  document.getElementById('recordsCard').style.display = 'none';
+  openEmployeeForm();
 
   submitBtn.textContent =
     'Update Employee';
@@ -3676,12 +4049,9 @@ async function deleteRecord(bioId) {
     employee
   );
 
-  if (
-    editKey &&
-    editKey.toLowerCase() === key.toLowerCase()
-  ) {
+  if (editKey && editKey === employee.id) {
     cancelEdit();
-  }
+}
 
   await renderRecords();
 
@@ -3832,8 +4202,8 @@ form.addEventListener('submit', async function(e) {
       await supabaseClient
         .from('employees')
         .select('id, bio_id, cnic, hcm_id, full_name')
-        .eq('bio_id', editKey)
-        .limit(1);
+.eq('id', editKey)
+.limit(1);
 
 
     if (existingError) {
@@ -3881,35 +4251,46 @@ form.addEventListener('submit', async function(e) {
 
   /* ================= DATABASE DUPLICATE CHECK ================= */
 
-  const duplicateConditions = [
-    'cnic.eq.' + cnicValue
-  ];
+const dupQueries = [
+  supabaseClient
+    .from('employees')
+    .select('id, cnic, bio_id, hcm_id')
+    .eq('cnic', cnicValue)
+];
 
-
-  if (bioValue) {
-
-    duplicateConditions.push(
-      'bio_id.eq.' + bioValue
-    );
-
-  }
-
-
-  if (hcmValue) {
-
-    duplicateConditions.push(
-      'hcm_id.eq.' + hcmValue
-    );
-
-  }
-
-
-  const { data: duplicateRows, error: duplicateError } =
-    await supabaseClient
+if (bioValue) {
+  dupQueries.push(
+    supabaseClient
       .from('employees')
       .select('id, cnic, bio_id, hcm_id')
-      .or(duplicateConditions.join(','));
+      .eq('bio_id', bioValue)
+  );
+}
 
+if (hcmValue) {
+  dupQueries.push(
+    supabaseClient
+      .from('employees')
+      .select('id, cnic, bio_id, hcm_id')
+      .eq('hcm_id', hcmValue)
+  );
+}
+
+const dupResults = await Promise.all(dupQueries);
+
+const duplicateError =
+  dupResults.map(function(r) { return r.error; })
+            .find(Boolean) || null;
+
+const duplicateRows = [];
+
+dupResults.forEach(function(r) {
+  (r.data || []).forEach(function(row) {
+    if (!duplicateRows.some(function(x) { return x.id === row.id; })) {
+      duplicateRows.push(row);
+    }
+  });
+});
 
   if (duplicateError) {
 
@@ -4057,7 +4438,48 @@ form.addEventListener('submit', async function(e) {
   /* =====================================================
      SUPABASE RECORD
   ===================================================== */
+/* ================= PHOTO UPLOAD ================= */
 
+  let finalPhotoPath = photoPath || null;
+
+  if (photoFile) {
+
+    submitBtn.textContent = 'Uploading photo...';
+
+    const newPath = cnicValue + '_' + Date.now() + '.jpg';
+
+    const { error: uploadError } =
+      await supabaseClient.storage
+        .from(PHOTO_BUCKET)
+        .upload(newPath, photoFile, {
+          contentType: 'image/jpeg',
+          upsert: true
+        });
+
+    if (uploadError) {
+
+      console.error('PHOTO UPLOAD FAILED:', uploadError);
+
+      show(
+        'Photo could not be uploaded: ' +
+        (uploadError.message || 'Storage error.'),
+        'err'
+      );
+
+      submitBtn.disabled = false;
+      submitBtn.textContent =
+        editKey ? 'Update Employee' : 'Submit Enrolment';
+
+      return;
+    }
+
+    if (photoPath) {
+      await supabaseClient.storage
+        .from(PHOTO_BUCKET).remove([photoPath]);
+    }
+
+    finalPhotoPath = newPath;
+  }
   const record = {
 
     /* Personal Information */
@@ -4171,6 +4593,8 @@ temporary_address:
 
     emergency_phone:
       document.getElementById('ecPhone').value.trim() || null,
+  photo_url:
+      finalPhotoPath,
 
 
     /* Declaration */
@@ -4359,9 +4783,8 @@ document.getElementById('printBtn').onclick = () => {
 };
 
 async function printOne(bioId) {
-  const key = safe(bioId).trim().toLowerCase();
 
-  /* ================= LOAD FROM SUPABASE ================= */
+  const key = safe(bioId).trim();
 
   const { data: r, error } = await supabaseClient
     .from('employees')
@@ -4371,186 +4794,57 @@ async function printOne(bioId) {
 
   if (error) {
     console.error('SUPABASE PRINT LOAD FAILED:', error);
-    show('Unable to load employee from database.', 'err');
+    alert('Unable to load employee from database.');
     return;
   }
 
   if (!r) {
-    show('Record not found in database.', 'err');
+    alert('Record not found in database.');
     return;
   }
 
-  /* ================= SUPABASE → PRINT FIELDS ================= */
+  const formCard = document.getElementById('formCard');
+  const wasHidden = formCard.style.display === 'none';
 
-  const employee = {
-    bioId: r.bio_id,
-    hcmId: r.hcm_id,
-    fullName: r.full_name,
-    fatherName: r.father_name,
-    oldCnic: r.old_cnic,
-    cnic: r.cnic,
-    cnicIssueDate: r.cnic_issue_date,
-    cnicExpiryDate: r.cnic_expiry_date,
-    dob: r.date_of_birth,
-    gender: r.gender,
-    maritalStatus: r.marital_status,
-    nationality: r.nationality,
-    personalEmail: r.personal_email,
-    professionalEmail: r.professional_email,
-    phone: r.phone,
-    lastQualification: r.last_qualification,
-    educationFrom: r.education_from,
-    address: r.present_address,
-    temporaryAddress: r.temporary_address,
+  /* employee ka data form mein bharo */
+  loadEmployeeIntoForm(r);
 
-    personalReference: r.reference_1_name,
-    personalReferencePhone: r.reference_1_phone,
-    professionalReference: r.reference_2_name,
-    professionalReferencePhone: r.reference_2_phone,
-    referenceEmail: r.reference_email,
+  document.body.classList.remove('printing-one', 'printing-all');
+  document.body.classList.add('printing-form');
+  printArea.innerHTML = '';
 
-    joinDate: r.joining_date,
-    grade: r.grade,
-    designation: r.designation,
-    department: r.department,
-    category: r.category,
-    salary: r.salary,
-    accountNumber: r.account_no,
-
-    ecName: r.emergency_name,
-    ecRelation: r.emergency_relation,
-    ecPhone: r.emergency_phone,
-
-    savedAt: r.created_at,
-    updatedAt: r.updated_at
-  };
-
-  /* ================= PRINT ROW ================= */
-
-  const row = (label, value, cls) =>
-    '<tr><td class="k">' +
-    label +
-    '</td><td' +
-    (cls ? ' class="' + cls + '"' : '') +
-    '>' +
-    safe(value) +
-    '</td></tr>';
-
-  /* ================= BUILD PRINT ================= */
-
-  printArea.innerHTML =
-    '<div class="sheet">' +
-
-      '<div class="sheet-head">' +
-        '<h1>Employee Enrolment Record</h1>' +
-        '<p>Biostar ID: <b>' +
-          safe(employee.bioId) +
-        '</b> &nbsp;|&nbsp; Name: <b>' +
-          getRecordName(employee) +
-        '</b></p>' +
-      '</div>' +
-
-      '<h3>Personal Information</h3>' +
-      '<table>' +
-
-        row('Full Name', employee.fullName) +
-        row('Father Name', employee.fatherName) +
-        row('CNIC / National ID', employee.cnic) +
-        row('Old CNIC', employee.oldCnic) +
-        row('CNIC Issue Date', formatDate(employee.cnicIssueDate)) +
-        row('CNIC Expiry Date', formatDate(employee.cnicExpiryDate)) +
-        row('Date of Birth', formatDate(employee.dob)) +
-        row('Gender', employee.gender) +
-        row('Marital Status', employee.maritalStatus) +
-        row('Nationality', employee.nationality) +
-        row('Phone', employee.phone) +
-        row('Personal Email', employee.personalEmail) +
-        row('Professional Email', employee.professionalEmail) +
-        row('Employee Email (used)', employeeEmail(employee)) +
-        row('Last Qualification', employee.lastQualification) +
-        row('Education From', employee.educationFrom) +
-
-        '<tr>' +
-          '<td class="k">Permanent Address</td>' +
-          '<td>' +
-            safe(employee.address) +
-          '</td>' +
-        '</tr>' +
-
-        '<tr>' +
-          '<td class="k">Temporary Address</td>' +
-          '<td>' +
-            safe(employee.temporaryAddress) +
-          '</td>' +
-        '</tr>' +
-
-      '</table>' +
-
-      '<h3>Employment Details</h3>' +
-      '<table>' +
-
-        row('Biostar ID', employee.bioId) +
-        row('HCM ID', employee.hcmId) +
-        row('Designation', employee.designation) +
-        row('Department', employee.department) +
-        row('Grade', employee.grade) +
-        row('Category', employee.category) +
-        row('Joining Date', formatDate(employee.joinDate)) +
-        row('Monthly Salary', employee.salary) +
-        row('Account Number', employee.accountNumber) +
-
-      '</table>' +
-
-      '<h3>References</h3>' +
-      '<table>' +
-
-        row('Personal Reference', employee.personalReference) +
-        row('Personal Reference Phone', employee.personalReferencePhone) +
-        row('Professional Reference', employee.professionalReference) +
-        row('Professional Reference Phone', employee.professionalReferencePhone) +
-        row('Reference Email', employee.referenceEmail) +
-
-      '</table>' +
-
-      '<h3>Emergency Contact</h3>' +
-      '<table>' +
-
-        row('Contact Name', employee.ecName) +
-        row('Relationship', employee.ecRelation) +
-        row('Contact Phone', employee.ecPhone) +
-
-      '</table>' +
-
-      '<div class="sheet-note">' +
-        'Record saved: ' +
-        formatTime(employee.savedAt) +
-
-        (employee.updatedAt
-          ? ' &nbsp;|&nbsp; Last updated: ' +
-            formatTime(employee.updatedAt)
-          : '') +
-
-        ' &nbsp;|&nbsp; Printed: ' +
-        formatTime(new Date().toISOString()) +
-
-      '</div>' +
-
-      '<div class="sheet-foot">' +
-        '<div>Employee Signature</div>' +
-        '<div>Authorised Signature</div>' +
-      '</div>' +
-
-    '</div>';
-
-  /* ================= PRINT ================= */
-
-  document.body.classList.add('printing-one');
+  /* print ke baad form dobara khali kar do */
+  window.addEventListener('afterprint', function cleanup() {
+    window.removeEventListener('afterprint', cleanup);
+    if (wasHidden) {
+      form.reset();
+      resetPhoto();
+      updateProgress();
+    }
+  });
 
   window.print();
 }
 window.addEventListener('afterprint', () => {
   document.body.classList.remove('printing-one');
   printArea.innerHTML = '';
+});
+window.addEventListener('beforeprint', function() {
+
+  const b = document.body;
+
+  if (b.classList.contains('printing-one') ||
+      b.classList.contains('printing-all') ||
+      b.classList.contains('printing-form')) {
+    return;
+  }
+
+  /* agar form khula hua hai to usay A4 form format mein print karo */
+  const fc = document.getElementById('formCard');
+
+  if (fc && fc.style.display !== 'none') {
+    b.classList.add('printing-form');
+  }
 });
 
 /* =========================================================
@@ -4938,7 +5232,7 @@ function buildXlsHtml(all) {
     '<th style="background:#2f4bd6;color:#fff;border:1px solid #999;">' + esc(c[1]) + '</th>').join('') + '</tr>';
   const body = all.map(r => '<tr>' + COLS.map(c =>
     '<td style="border:1px solid #ccc;">' + esc(valueFor(r, c[0])) + '</td>').join('') + '</tr>').join('');
-  return '<html xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="[w3.org](http://www.w3.org/TR/REC-html40)">' +
+  return '<html xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
     '<head><meta charset="UTF-8"></head><body>' +
     '<table border="1" cellspacing="0" cellpadding="4">' + head + body + '</table>' +
     '</body></html>';
